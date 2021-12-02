@@ -9,6 +9,7 @@ from extract_http.exceptions import HTTPRequestTimedOut, \
                                     HTTPRequestUnknownError, \
                                     HTTPRequestError \
 
+# Fetch url and return in the appropriate data type
 def curl(
     url:str,
     params:dict=None,

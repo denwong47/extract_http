@@ -75,19 +75,19 @@ def do_transform(
     data:list,
     url:str=None,
 )->list:
-    for _obj in data:
-        if (isinstance(_obj, list)):
+    if (isinstance(data, list)):
+        for _obj in data:
             _obj = do_transform(
                 transform,
                 _obj,
                 url=url,
             )
-        elif (isinstance(_obj, dict)):
-            _obj = transform_record(
-                transform,
-                _obj,
-                url=url,
-            )
+    elif (isinstance(data, dict)):
+        _obj = transform_record(
+            transform,
+            data,
+            url=url,
+        )
 
     return data
 
@@ -131,12 +131,47 @@ def do_extract_json(
     config:dict,
     **kwargs,
     )->dict:
-    pass
+
+    _type = config.get("type", "").format(**kwargs)
+    _url = config.get("url", "").format(**kwargs)
+    _params = config.get("params", {})
+    _transform = config.get("transform", None)
+    
+    if (not (_type and _url)):
+        _exception = ConfigIncomplete("JSON Extraction missing configurations. Type, URL need to be supplied.")
+        raise _exception
+
+    _result = curl(
+        _url,
+        _params,
+        None,
+    )
+
+    if (not isinstance(_result, Exception)):
+        _data = _result
+
+        if (_transform):
+            _data = do_transform(
+                transform=_transform,
+                data=_data,
+                url=_url,
+            )
+
+        return _data
+    else:
+        raise _result
+        return _result
 
 def extract(
     config:dict,
     **kwargs,
 )->list:
+    _type = config.get("type", "").format(**kwargs)
+
+    if (not _type):
+        _exception = ConfigIncomplete("Extraction missing Type configuration.")
+        raise _exception
+
     _func_switch = {
         "html":do_extract_html,
         "json":do_extract_json,

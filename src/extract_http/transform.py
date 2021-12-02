@@ -1,7 +1,5 @@
 import warnings
 
-import json
-import base64
 import re
 from concurrent.futures import ThreadPoolExecutor
 
@@ -120,18 +118,21 @@ def transform_record(
                 prep_url = lambda _url: _url
 
             _urls = [ 
-                prep_url(_url) for _url in ([ url, ] if isinstance(url, str) else url)
+                prep_url(_url) for _url in ([ source, ] if isinstance(source, str) else source)
             ]
             
             with ThreadPoolExecutor() as executor:
-                _data = executor.map(lambda _url:curl(_url, params, encode="base64"), _urls)
+                _data = executor.map(lambda _url:curl(_url, params, encode="base64text"), _urls)
 
         _data = [
-            _data if (not isinstance(_data, Exception)) else None
+            (_result if (not isinstance(_result, Exception)) else None) for _result in list(_data)
         ]
 
         if (isinstance(source, str)):
-            return _data[0]
+            if (len(_data) <= 0):
+                return None
+            else:
+                return _data[0]
         else:
             return _data
 
