@@ -4,8 +4,8 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 
 from urllib.parse import urljoin
-from extract_http import curl
-from extract_http.bin import formatters, \
+from extract_http.bin import curl, \
+                             formatters, \
                              safe_zip
 
 def transform_record(

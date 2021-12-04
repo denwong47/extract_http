@@ -83,20 +83,25 @@ def parse_node_format(
         return NodeFormatStringInvalid(f"{format} is not a valid Node Value formatter.")
 
 def get_node_value(
-    format:str,
+    format:list,
     nodes:BeautifulSoup,
     allow_list:bool=True,
 ):
+    if (isinstance(format, str)):
+        format = [format, ]
 
-    _formatter = parse_node_format(
-        format,
-        allow_list=allow_list,
-    )
+    _value_nodes = nodes
+    
+    for _format_item in format:
+        _formatter = parse_node_format(
+            _format_item,
+            allow_list=allow_list,
+        )
 
-    _value_nodes = find_all_nodes(
-        _formatter["selector"],
-        nodes,
-    )
+        _value_nodes = find_all_nodes(
+            _formatter["selector"],
+            _value_nodes,
+        )
 
     if (_value_nodes):
         _source_switch = {
