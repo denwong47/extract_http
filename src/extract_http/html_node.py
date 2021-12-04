@@ -87,7 +87,8 @@ def get_node_value(
     nodes:BeautifulSoup,
     allow_list:bool=True,
 ):
-    if (isinstance(format, str)):
+    if (isinstance(format, str) or \
+        isinstance(format, dict)):
         format = [format, ]
 
     _value_nodes = nodes

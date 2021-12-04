@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
 
 from extract_http.bin import curl
-from extract_http.exceptions import HTMLParseError, \
+from extract_http.exceptions import FileIOError, \
+                                    HTMLParseError, \
                                     ConfigIncomplete
 from extract_http.html_node import  find_all_nodes, \
                                     get_value_array, \
@@ -94,19 +95,27 @@ def do_extract_html(
     # Example
     _type = config.get("type", "").format(**kwargs)
     _url = config.get("url", "").format(**kwargs)
+    _file = config.get("file", "").format(**kwargs)
     _params = config.get("params", {})
     _locate = config.get("locate", {})
 
-    if (not (_type and _url and _locate)):
+    if (not (_type and (_url or _file) and _locate)):
         _exception = ConfigIncomplete("HTML Extraction missing configurations. Type, URL and Locate needs to be supplied.")
         raise _exception
         return _exception
-    
-    _result = curl(
-        _url,
-        _params,
-        None,
-    )
+
+    if (_file):
+        try:
+            with open(_file, "r") as _fHnd:
+                _result = _fHnd.read()
+        except Exception as e:
+            _result = FileIOError(str(e))
+    else:
+        _result = curl(
+            _url,
+            _params,
+            None,
+        )
 
     if (not isinstance(_result, Exception)):
         _html = _result
@@ -129,18 +138,26 @@ def do_extract_json(
 
     _type = config.get("type", "").format(**kwargs)
     _url = config.get("url", "").format(**kwargs)
+    _file = config.get("file", "").format(**kwargs)
     _params = config.get("params", {})
     _transform = config.get("transform", None)
     
-    if (not (_type and _url)):
+    if (not (_type and (_url or _file))):
         _exception = ConfigIncomplete("JSON Extraction missing configurations. Type, URL need to be supplied.")
         raise _exception
 
-    _result = curl(
-        _url,
-        _params,
-        None,
-    )
+    if (_file):
+        try:
+            with open(_file, "r") as _fHnd:
+                _result = _fHnd.read()
+        except Exception as e:
+            _result = FileIOError(str(e))
+    else:
+        _result = curl(
+            _url,
+            _params,
+            None,
+        )
 
     if (not isinstance(_result, Exception)):
         _data = _result

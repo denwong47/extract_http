@@ -6,6 +6,11 @@ class ConfigIncomplete(ValueError):
         return False
     __nonzero__ = __bool__
 
+class FileIOError(RuntimeError):
+    def __bool__(self):
+        return False
+    __nonzero__ = __bool__
+
 class HTMLParseError(ValueError):
     def __init__(self, *args, html:str=None, **kwargs):
         super().__init__(*args, **kwargs)
