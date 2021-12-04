@@ -32,17 +32,17 @@ locate:
         value: td#1$stripText
       transform:
         art_no:
-        source: "{URL}"
-        substitute:
-            pattern: "^.+/(?P<art_no>[A\\d\\.]+)/$"
-            rep: "\\g<art_no>"
+            source: "{URL}"
+            substitute:
+                pattern: "^.+/(?P<art_no>[A\\d\\.]+)/$"
+                rep: "\\g<art_no>"
         description:
-        source: "{art_no} {Light distribution} light in {Colour of light} colour"
+            source: "{art_no} {Light distribution} light in {Colour of light} colour"
         Weight:
-        substitute:
-            pattern: "^(?P<numeric_weight>[\\d\\.]+)\\s*kg$"
-            rep: "\\g<numeric_weight>"
-        type: float
+            substitute:
+                pattern: "^(?P<numeric_weight>[\\d\\.]+)\\s*kg$"
+                rep: "\\g<numeric_weight>"
+            type: float
     - search_root:
         - div.description>ul
       lists:
@@ -58,11 +58,11 @@ locate:
         specsheet_pdf: div.access-download.access-specsheet>a$attr[href]
       transform:
         img_base64:
-        source: "{img_src}"
-        embed: url
+            source: "{img_src}"
+            embed: url
         manual_base64:
-        source: "{manual_pdf}"
-        embed: url
+            source: "{manual_pdf}"
+            embed: url
 ```
 
 ## > type
