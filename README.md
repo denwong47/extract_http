@@ -6,7 +6,7 @@
 
 Extract information from a HTML or JSON API as according to a configuration dictionary.
 ```
-def bounds_of_nth_prime(
+def extract(
     config:dict,
     **kwargs,)
 ->list
@@ -329,6 +329,6 @@ BS4_SELECT_STRING[$(innerHTML|innerText|stripText|outerHTML|attr[ATTR_NAME])]
 ```
 
 Typical Examples:
-`div.description>ul` (assumes innerHTML if not specified)
-`img.product-image$attr[src]`
-`div.access-download.access-manual>a$attr[href]`
+- `div.description>ul` (assumes innerHTML if not specified)
+- `img.product-image$attr[src]`
+- `div.access-download.access-manual>a$attr[href]`
