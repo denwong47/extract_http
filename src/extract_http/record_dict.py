@@ -77,6 +77,7 @@ class record_dict(dict):
         value:Any,
         delimiter:str=">>>",
         iterate_lists:bool=True,
+        replace_list_items:bool=True,
         **kwargs,
     )->None:
         # Create node if it doesn't exist
@@ -152,14 +153,22 @@ class record_dict(dict):
                         for _item_id, _list_item in enumerate(_first_value):
                             if (isinstance(_list_item, dict)):
                                 self[_first_key][_item_id] = type(self)(self[_first_key][_item_id])
-                                self[_first_key][_item_id].put(
-                                    key.copy(),
-                                    value, # We don't need to pop this, value is mutable and thus "passed by reference"
-                                    delimiter=delimiter,
-                                    iterate_lists=iterate_lists,
-                                    **kwargs)
                             else:
-                                self[_first_key][_item_id] = value.pop(0)
+                                # The original list item is not a dict, but our key isn't exhausted.
+                                # We have to wipe the original value for a new dict.
+                                if (replace_list_items):
+                                    self[_first_key][_item_id] = type(self)()
+                                else:
+                                    # If we are not replacing these list items,
+                                    # leave the list items as is.
+                                    continue
+
+                            self[_first_key][_item_id].put(
+                                key.copy(),
+                                value, # We don't need to pop this, value is mutable and thus "passed by reference"
+                                delimiter=delimiter,
+                                iterate_lists=iterate_lists,
+                                **kwargs)
                     else:
                         self[_first_key] = value
                 else:
@@ -206,9 +215,7 @@ if __name__=="__main__":
             {
                 "abc":"ghi",
             },
-            {
-                "abc":"mno",
-            },
+            "a string",
         ]
     }
 
@@ -216,7 +223,7 @@ if __name__=="__main__":
 
     print (_dict.get("123", delimiter=">>>"))
     print (_dict.put(
-        "456>>>abc", [0,9,8,7,6,5,4,3,2], delimiter=">>>"
+        "456>>>abc", [0,9,8,7,6,5,4,3,2], delimiter=">>>", replace_list_items=True
     ))
 
     print (_dict)
