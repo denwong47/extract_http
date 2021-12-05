@@ -127,7 +127,7 @@ def transform_record(
         }
         try:
             _return = _type_switch.get(type, str)(source)
-        except ValueError as e:
+        except (ValueError, TypeError) as e:
             # If failed, just return as is
             _return = source
         return _return
@@ -196,6 +196,10 @@ def transform_record(
         _type = transform[_key].get("type", None)
         _substitute = transform[_key].get("substitute", None)
         _embed = transform[_key].get("embed", None)
+
+        # If source is not defined, assume its the key itself
+        if (not(_source) and (_key in record)):
+            _source = f"\{{{_key}}}"
 
         if (not(_source) and not (_key in record)):
             warnings.warn(f"Source not found for transform key {_key}, skipping.")
