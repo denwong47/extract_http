@@ -7,11 +7,15 @@ from urllib.parse import urljoin
 from extract_http.bin import curl, \
                              formatters, \
                              safe_zip
+from extract_http.record_dict import record_dict
+
+from extract_http.defaults import RECORD_DICT_DELIMITER
 
 def transform_record(
     transform:dict,
     record:dict,
     url:str=None,
+    delimiter:str=RECORD_DICT_DELIMITER,
 )->dict:
 
     # Allow the dict content to be a list and still apply the transformation by iteration
@@ -47,40 +51,67 @@ def transform_record(
     # It is assumed that if some of them are lists, they would have the same length.
     def get_source(
         source:str,
-        record:dict
+        record:record_dict,
+        delimiter:str=RECORD_DICT_DELIMITER,
     ):
         # Work out if there is a list involved in the formatters
         _list_count = None
+
+        if (isinstance(record, dict) and \
+            not isinstance(record, record_dict)):
+            record = record_dict(record)
+
+        # Establishing list count
         for _formatter in formatters(source):
-            if (isinstance(record.get(_formatter, None), list) and \
-                not isinstance(record.get(_formatter, None), str)):
-                _list_count = len(record.get(_formatter, None))
+            _subrecord = record.get(
+                _formatter,
+                None,
+                delimiter=delimiter,
+                iterate_lists=True,
+                flatten_lists=True,
+            )
+            
+            if (isinstance(_subrecord, list) and \
+                not isinstance(_subrecord, str)):
+                _list_count = len(_subrecord)
                 break
 
-        if (_list_count):
-            _return = []
-            
-            # So we have a list to deal with.
+        
+        _return = []
+        
+        # So we have a list to deal with.
 
-            # First we create a generator of ( [_subrecord1_attr1, _subrecord1_attr2,... ], [_subrecord2_attr1, _subrecord2_attr2,... ], [_subrecord3_attr1, _subrecord3_attr2,... ], )
-            _subrecords = safe_zip(*[record[_formatter] for _formatter in formatters(source)], repeat_last=True)
-            # Using repeat_last allows anything that is not a list to be repeated.
-            # This generator does not contain the formatter name itself.
+        # First we create a generator of ( [_subrecord1_attr1, _subrecord1_attr2,... ], [_subrecord2_attr1, _subrecord2_attr2,... ], [_subrecord3_attr1, _subrecord3_attr2,... ], )
+        _subrecords = safe_zip(*[record.get(
+            _formatter,
+            None,
+            delimiter=delimiter,
+            iterate_lists=True,
+            flatten_lists=True,
+        ) for _formatter in formatters(source)], repeat_last=True)
+        # Using repeat_last allows anything that is not a list to be repeated.
+        # This generator does not contain the formatter name itself.
+
+        # So we dig into each subrecord:
+        for _subrecord in _subrecords:
+            # And rebuild the subrecord as a dict { attr1:_subrecord1_attr1, attr2:_subrecord1_attr2, attr3:_subrecord1_attr3,}...
+            _subrecord = record_dict({
+                _key:_value \
+                    for _key, _value in zip(formatters(source), _subrecord)
+            })
             
-            # So we dig into each subrecord:
-            for _subrecord in _subrecords:
-                # And rebuild the subrecord as a dict { attr1:_subrecord1_attr1, attr2:_subrecord1_attr2, attr3:_subrecord1_attr3,}...
-                _subrecord = {
-                    _key:_value \
-                        for _key, _value in zip(formatters(source), _subrecord)
-                }
-                
-                # Do the formatting
-                _return.append(source.format(**_subrecord))
-            
+            # Do the formatting
+            _return.append(source.format(**_subrecord))
+        
+        if (_list_count):
             return _return
         else:
-            return source.format(**record)
+            if (len(_return)>0):
+                return _return.pop(0)
+            else:
+                return None
+        # else:
+        #     return source.format(**record)
 
     @vectorise
     def change_type(
@@ -156,7 +187,10 @@ def transform_record(
 
         return _return
 
+    record = record_dict(record)
+
     # Each _key in transform represents a new dict key
+    # DO NOT PARALLELISE THIS - some subsequent transformations can require earlier ones
     for _key in transform:
         _source = transform[_key].get("source", None)
         _type = transform[_key].get("type", None)
@@ -167,33 +201,61 @@ def transform_record(
             warnings.warn(f"Source not found for transform key {_key}, skipping.")
         else:
             if (_source is not None):
+                # THIS IS BY VALUE ONLY - DO NOT ASSIGN TO IT
+                _destination_record_value = lambda : get_source(
+                                                        source=_source,
+                                                        record=record,
+                                                        delimiter=delimiter,
+                                                    )
+
                 # Create the new key if doesn't exist yet
-                record[_key] = get_source(
-                    source=_source,
-                    record=record
-                    )
+                record.put(
+                    _key,
+                    _destination_record_value(),
+                    delimiter=delimiter,
+                    iterate_lists=True,
+                    replace_list_items=True,
+                )
 
             # REGEX SUBSTITUTION
             if (_substitute):
-                record[_key] = make_substitution(
-                    substitute=_substitute,
-                    source=record[_key],
+                record.put(
+                    _key,
+                    make_substitution(
+                        substitute=_substitute,
+                        source=_destination_record_value(),
+                    ),
+                    delimiter=delimiter,
+                    iterate_lists=True,
+                    replace_list_items=True,
                 )
 
             # EMBED BASE64
             if (_embed):
-                record[_key] = embed_base64(
-                    embed=_embed,
-                    source=record[_key],
-                    url=url,
-                    )
+                record.put(
+                    _key,
+                    embed_base64(
+                        embed=_embed,
+                        source=_destination_record_value(),
+                        url=url,
+                        ),
+                    delimiter=delimiter,
+                    iterate_lists=True,
+                    replace_list_items=True,
+                )
 
             # TYPE CHANGE
             if (_type):
-                record[_key] = change_type(
-                    type=_type,
-                    source=record[_key]
-                    )
+                record.put(
+                    _key,
+                    change_type(
+                        type=_type,
+                        source=_destination_record_value(),
+                        ),
+                    delimiter=delimiter,
+                    iterate_lists=True,
+                    replace_list_items=True,
+                )
             
     return record
         

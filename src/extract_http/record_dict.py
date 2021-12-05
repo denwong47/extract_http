@@ -194,36 +194,36 @@ class record_dict(dict):
                         )
 
 
-if __name__=="__main__":
-    _dict = {
-        "a":{
-            "b":{
-                "c":{
-                    "d":"Something",
-                }
-            }
-        },
-        "123":True,
-        "456":[
-            {
-                "abc":[
-                    "def",
-                    "def2",
-                    "def3",
-                ]
-            },
-            {
-                "abc":"ghi",
-            },
-            "a string",
-        ]
-    }
+# if __name__=="__main__":
+#     _dict = {
+#         "a":{
+#             "b":{
+#                 "c":{
+#                     "d":"Something",
+#                 }
+#             }
+#         },
+#         "123":True,
+#         "456":[
+#             {
+#                 "abc":[
+#                     "def",
+#                     "def2",
+#                     "def3",
+#                 ]
+#             },
+#             {
+#                 "abc":"ghi",
+#             },
+#             "a string",
+#         ]
+#     }
 
-    _dict = record_dict(_dict)
+#     _dict = record_dict(_dict)
 
-    print (_dict.get("123", delimiter=">>>"))
-    print (_dict.put(
-        "456>>>abc", [0,9,8,7,6,5,4,3,2], delimiter=">>>", replace_list_items=True
-    ))
+#     print (_dict.get("123", delimiter=">>>"))
+#     print (_dict.put(
+#         "456>>>abc", [0,9,8,7,6,5,4,3,2], delimiter=">>>", replace_list_items=True
+#     ))
 
-    print (_dict)
+#     print (_dict)

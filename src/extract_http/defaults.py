@@ -1,0 +1,1 @@
+RECORD_DICT_DELIMITER = ">>>"

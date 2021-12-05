@@ -45,6 +45,7 @@ def find_all_nodes(
                 _children_nodes = _children_nodes + _parent_node.find_all(
                     *_search.get("args", []),
                     **_search.get("kwargs", {}),
+                    # partial=True
                 )
         
         _parent_nodes = _children_nodes

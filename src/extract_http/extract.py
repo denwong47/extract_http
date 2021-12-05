@@ -10,12 +10,14 @@ from extract_http.html_node import  find_all_nodes, \
                                     get_value_records
 from extract_http.transform import  transform_record
 
+from extract_http.defaults import RECORD_DICT_DELIMITER
 
 
 def do_locate_html(
     locate:dict,
     html:str,
     url:str=None,
+    delimiter:str=RECORD_DICT_DELIMITER,
 )->list:
     _data = []
 
@@ -59,6 +61,7 @@ def do_locate_html(
             _transform,
             _data_group,
             url=url,
+            delimiter=delimiter,
         )
         
         _data.append(_data_group)
@@ -70,19 +73,23 @@ def do_transform(
     transform:dict,
     data:list,
     url:str=None,
+    delimiter:str=RECORD_DICT_DELIMITER,
 )->list:
     if (isinstance(data, list)):
-        for _obj in data:
-            _obj = do_transform(
+        # We need to replace the object of data itself, so we can't just throw away the return value
+        for _id, _obj in enumerate(data):
+            data[_id] = do_transform(
                 transform,
                 _obj,
                 url=url,
+                delimiter=delimiter,
             )
     elif (isinstance(data, dict)):
-        _obj = transform_record(
+        data = transform_record(
             transform,
             data,
             url=url,
+            delimiter=delimiter,
         )
 
     return data
@@ -133,6 +140,7 @@ def do_extract_html(
     
 def do_extract_json(
     config:dict,
+    delimiter:str=RECORD_DICT_DELIMITER,
     **kwargs,
     )->dict:
 
@@ -167,6 +175,7 @@ def do_extract_json(
                 transform=_transform,
                 data=_data,
                 url=_url,
+                delimiter=delimiter,
             )
 
         return _data
