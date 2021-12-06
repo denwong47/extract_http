@@ -1,0 +1,98 @@
+[
+    [
+        {
+            "art_no": "A2000292",
+            "art_name": "Iku Work Downlightwith white anti-glare cone"
+        }
+    ],
+    [
+        {
+            "Light distribution": "Wide flood",
+            "Colour of light": "warm white",
+            "Colour rendition index": "CRI 92",
+            "Lense": "Fresnel lens wide flood",
+            "Construction size": "177mm, 5",
+            "Connected load": "19.0W",
+            "Luminous flux of the luminaire": "1926lm",
+            "Luminaire efficacy": "101lm/W",
+            "Colour deviation": "1.5 SDCM",
+            "Light source": "LED module: 16.9W 2448lm 2700K warm white",
+            "Lumen maintenance (LED manufacturer specifications)": "L90 \u226450000h",
+            "LED failure rate": "0.1% \u226450000h",
+            "Control": "DALI-2",
+            "Dimming range": "1%-100%",
+            "Dimming method": "CCR",
+            "Standby power per control gear": "0.1W",
+            "LMF": "D",
+            "Luminaires per circuit breaker B16": "31",
+            "Housing colour": "White (RAL9002)",
+            "Weight": 1.38,
+            "URL": "https://www.erco.com/A2000292/",
+            "Version": "1",
+            "Technical Region": "220-240V 50/60Hz",
+            "art_no": "A2000292",
+            "description": "A2000292 Wide flood light in warm white colour"
+        }
+    ],
+    [],
+    [
+        {
+            "description": [
+                "Housing: cast aluminium, designed as heat sink, with connection cable L 500mm. Fixing ring: polymer, black.",
+                "Mounting ring: polymer, white (RAL9002). Mounting for ceiling thicknesses of 1-30mm.",
+                "10-pole connection terminal. Through-wiring possible.",
+                "Includes DALI control gear.",
+                "LED module: mid-power LEDs.",
+                "Fresnel lens made of optical polymer.",
+                "Anti-glare cone: polymer, white (RAL 9002).",
+                "The luminaire is protected on the room side against splashing water.",
+                "Recess depth 120mm for DALI control gear.",
+                "Protection Class II",
+                "Weight 1.38kg",
+                "Available from 10.2021"
+            ]
+        }
+    ],
+    [
+        {
+            "img_src": "/cdn/specsheets/images/2021/256x242/147477.jpg",
+            "img_alt": "Produktfoto von Artikel 82937.000",
+            "art_no": "82937.000",
+            "descripton": "Mounting ring",
+            "manual_pdf": "/cdn/downloaddata/2021_02/db/manuals/005056885AE71EE98AC0F95F80EF491D.pdf",
+            "specsheet_pdf": "/cdn/downloaddata/2021_02/db/zubehoerspecs/1_2057/1082937000_1_2057-15723.pdf"
+        },
+        {
+            "img_src": "/cdn/specsheets/images/2021/256x242/1861096.jpg",
+            "img_alt": "Produktfoto von Artikel 82943.000",
+            "art_no": "82943.000",
+            "descripton": "Mounting ring",
+            "manual_pdf": "/cdn/downloaddata/2021_02/db/manuals/005056885AE71EE98AC0F95F80EF491D.pdf",
+            "specsheet_pdf": "/cdn/downloaddata/2021_02/db/zubehoerspecs/1_2057/1082943000_1_2057-16194.pdf"
+        },
+        {
+            "img_src": "/cdn/specsheets/images/2021/256x242/125101.jpg",
+            "img_alt": "Produktfoto von Artikel 82950.000",
+            "art_no": "82950.000",
+            "descripton": "Mounting plate for panelled ceilings",
+            "manual_pdf": "/cdn/downloaddata/2021_02/db/manuals/49BAA76C92B333E3E1000000C0A80902.pdf",
+            "specsheet_pdf": "/cdn/downloaddata/2021_02/db/zubehoerspecs/1_2057/1082950000_1_2057-4235.pdf"
+        },
+        {
+            "img_src": "/cdn/specsheets/images/2021/256x242/2117991.jpg",
+            "img_alt": "Produktfoto von Artikel 88290.000",
+            "art_no": "88290.000",
+            "descripton": "Compensation set",
+            "manual_pdf": "/cdn/downloaddata/2021_02/db/manuals/005056885AE71ED7B5BDA32D66007446.pdf",
+            "specsheet_pdf": "/cdn/downloaddata/2021_02/db/zubehoerspecs/1_2057/1088290000_1_2057-16815.pdf"
+        },
+        {
+            "img_src": "/cdn/specsheets/images/2021/256x242/142674.jpg",
+            "img_alt": "Produktfoto von Artikel 83980.000",
+            "art_no": "83980.000",
+            "descripton": "Cover ring",
+            "manual_pdf": "/cdn/downloaddata/2021_02/db/manuals/005056885AE71ED7B5BD8DD1D4DBB41A.pdf",
+            "specsheet_pdf": "/cdn/downloaddata/2021_02/db/zubehoerspecs/1_2057/1083980000_1_2057-4239.pdf"
+        }
+    ]
+]
