@@ -192,13 +192,13 @@ By using the following as `locate[]`:
 }
 ```
 the following output will be returned:
-```
+```diff
 [
-    {
-        "Name":"John Doe",
-        "Age":"35",
-        "Email":"john.doe@sample.com",
-    }
++    {
++        "Name":"John Doe",
++        "Age":"35",
++        "Email":"john.doe@sample.com",
++    }
 ]
 ```
 
@@ -218,10 +218,12 @@ Find all the nodes matching
 ## > locate[] > transform
 Optional Dictionary with any keys:
 - [parameter_name] : Dictionary with one or more of the following keys:
-  - source : String, see below
+  - source : String, in Key String format, see below.
   - subsitute : Dictionary, see below
   - type : String, see below
   - embed : String, see below
+
+[parameter_name] itself is a String in Key String format. See separate section below.
 
 ## > locate[] > transform > [parameter_name] > source
 String, in Format String syntax. See Format String section below.
@@ -241,18 +243,22 @@ For example, if our record from `locate[]` currently contains:
 Then having a `transform` of
 ```
 "transform":{
-    "padded_name":"[{Name:60s}]",
-    "description":"{Name} is an employee of age {Age}. Contact him at {Email}."
+    "padded_name":{
+        "source":"[{Name:60s}]",
+    }
+    "description":{
+        "source":"{Name} is an employee of age {Age}. Contact him at {Email}.",
+    }
 }
 ```
 will result in:
-```
+```diff
 {
     "Name":"John Doe",
     "Age":"35",
     "Email":"john.doe@sample.com",
-    "padded_name":"[John Doe                                                    ]",
-    "description":"John Doe is an employee of age 35. Contact him at john.doe@sample.com."
++    "padded_name":"[John Doe                                                    ]",
++    "description":"John Doe is an employee of age 35. Contact him at john.doe@sample.com."
 }
 ```
 
@@ -296,10 +302,10 @@ Then having a `transform` of
 }
 ```
 will result in:
-```
+```diff
 {
     "Name":"John Doe",
-    "Age":35,
+!    "Age":35,
     "Email":"john.doe@sample.com",
 }
 ```
@@ -316,7 +322,14 @@ Non-text formats will be embedded in base64.
 ## > transform
 Only valid when `type` is `json`.
 
-Not implemented yet.
+Optional Dictionary with any keys:
+- [parameter_name] : Dictionary with one or more of the following keys:
+  - source : String, in Key String format. See below.
+  - subsitute : Dictionary
+  - type : String
+  - embed : String
+
+Refer to `> locate[] > transform` above.
 
 
 
@@ -332,3 +345,74 @@ Typical Examples:
 - `div.description>ul` (assumes innerHTML if not specified)
 - `img.product-image$attr[src]`
 - `div.access-download.access-manual>a$attr[href]`
+
+
+# Key Strings
+Defines the key of dictionary or sub-dictionaries to source or put the data.
+Syntax:
+```
+DICT_KEY[>>>SUBDICT1_KEY[>>>SUBDICT2_KEY[>>>SUBDICT3_KEY[...]]]]
+```
+
+Key Strings allow transformations to be applied to nested dictionaries. This is most useful when `type` is `json` and the incoming data structure has multiple layers.
+
+For example, if our data currently contains:
+```
+[
+    {
+        "Name":"John Doe",
+        "Age":"35",
+        "Email":"john.doe@sample.com",
+        "Employment":{
+            "Contract Type":"Permanent",
+            "Role":"Backend Developer",
+            "Salary":"40000",
+        }
+    },
+    {
+        "Name":"Jane Doe",
+        "Age":"30",
+        "Email":"jane.doe@sample.com",
+        "Employment":{
+            "Contract Type":"Contractor",
+            "Role":"Data Engineer",
+            "Salary":"52000",
+        }
+    },
+]
+```
+Then having a `transform` of
+```
+"transform":{
+    "Employment>>>Terms":{
+        "source":"[{Name} shall be paid ${Employment>>>Salary:,d} annually for the {Employment>>Contract Type}Role of {Employment>>Role}.]",
+    }
+}
+```
+will result in:
+```diff
+[
+    {
+        "Name":"John Doe",
+        "Age":"35",
+        "Email":"john.doe@sample.com",
+        "Employment":{
+            "Contract Type":"Permanent",
+            "Role":"Backend Developer",
+            "Salary":"40000",
++            "Terms":"John Doe shall be paid $40,000 annually for the Permanent Role of Backend Developer.",
+        }
+    },
+    {
+        "Name":"Jane Doe",
+        "Age":"30",
+        "Email":"jane.doe@sample.com",
+        "Employment":{
+            "Contract Type":"Contractor",
+            "Role":"Data Engineer",
+            "Salary":"52000",
++            "Terms":"Jane Doe shall be paid $52,000 annually for the Contractor Role of Data Engineer.",
+        }
+    },
+]
+```
