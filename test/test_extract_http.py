@@ -303,7 +303,7 @@ class TestExtractHTTP(unittest.TestCase):
                     "test_str":"Test String",
                     "test_int":12345,
                 },
-                "answer":"TESTSTRING, 12,345",
+                "answer":"TESTSTRING, 246,900",
             }
         ]
 

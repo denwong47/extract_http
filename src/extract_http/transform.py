@@ -5,8 +5,11 @@
 import warnings
 
 from concurrent.futures import ThreadPoolExecutor
+from enum import Enum
+import math
 import re
 import string
+from typing import Iterable, Union, List
 from urllib.parse import urljoin
 
 from extract_http.bin import curl, \
@@ -22,6 +25,98 @@ class native_list(list):
 class iterated_list(list):
     pass
 
+class ArithmaticCalculationError(ValueError):
+    def __bool__(self):
+        return False
+    __nonzero__ = __bool__
+
+class ArithmaticCalculationType(Enum):
+    SUM = "sum"
+    MINUS = "minus"
+    MULTIPLY = "mul"
+    DIVIDE = "div"
+    MAX = "max"
+    MIN = "min"
+    POWER = "power"
+
+    @classmethod
+    def function_list(cls):
+        return cls._value2member_map_
+
+    def get_function(self):
+        _function_switch = {
+            type(self).SUM: sum,
+            type(self).MINUS: lambda iterables: sum(
+                (_iterable * (1-2*(_id>0)) for _id, _iterable in enumerate(iterables))
+            ),
+            type(self).MULTIPLY: math.prod,
+            type(self).DIVIDE: lambda iterables: math.prod(
+                (_iterable ** (1-2*(_id>0)) for _id, _iterable in enumerate(iterables))
+            ),
+            type(self).MAX: max,
+            type(self).MIN: min,
+            type(self).POWER: power,
+        }
+        return _function_switch.get(self, None)
+
+    def execute(self, iterables:Iterable):
+        iterables = get_numeric_value(iterables)
+        _func = self.get_function()
+
+        if (callable(_func)):
+            return _func(iterables)
+        else:
+            return ArithmaticCalculationError(f"Cannot Execute arithmatic calculation - type '{self.value}' not defined.")
+
+def power(
+    iterables:Iterable,
+):
+    _return = None
+
+    for _iterable in iterables:
+        if (_return is None):
+            _return = _iterable
+        else:
+            _return **= _iterable
+    
+    return _return
+
+def get_numeric_value(
+    text: str,
+    return_err: bool=True,
+)->Union[float,int]:
+    if (isinstance(text, list) and not isinstance(text, str)):
+        value = []
+        for _item in text:
+            _item_value = get_numeric_value(_item, return_err=return_err)
+
+            if (not isinstance(_item_value, Exception) or return_err):
+                value.append(_item_value)
+
+    else: 
+        try:
+            value = float(text)
+        except ValueError as e:
+            return ArithmaticCalculationError(str(e))
+
+        if (value.is_integer()):
+            value = int(text)
+        
+    return value
+
+# General Arithmatic Calculations with supplied parameters and strings:
+# For use with extract_http.transform.transform_formatter only.
+def maths_transformation(
+    kind,
+):
+    def _func(
+        _value,
+        _params,
+    ):
+        return ArithmaticCalculationType(kind).execute([_value, *_params])
+
+    return _func
+
 # Custom Formatter class to allow for additional transformations.
 class transform_formatter(string.Formatter):
 
@@ -33,8 +128,11 @@ class transform_formatter(string.Formatter):
             _transform_switch = {
                 "upper":lambda _value, _params: str(_value).upper(),
                 "lower":lambda _value, _params: str(_value).lower(),
-                "strip":lambda _value, _params: str(_value).replace(_params.pop[0] if _params else " ", ""),
-                # "mul":lambda _value, _params: _value, # WIP
+                "strip":lambda _value, _params: str(_value).replace(_params.pop(0) if _params else " ", ""),
+                **{
+                    _kind: maths_transformation(_kind)
+                        for _kind in ArithmaticCalculationType.function_list()
+                },
                 None: lambda _value, _params: _value,
             }
 
@@ -50,6 +148,7 @@ class transform_formatter(string.Formatter):
             transform_format_spec = []
             
         return super().format_field(value, python_format_spec)
+
 
 # Transform a single record
 def transform_record(

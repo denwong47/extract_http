@@ -425,11 +425,40 @@ An extension of Python's str.format() functionality, adding value manipulations.
 
 Syntax:
 ```
-WIP
+{field_name[!conversion][:[format_spec][$manipulation1(param1,param2...),[$manipulation2(param1,param2...),...]]]}
 ```
 
 Allowed manipulations:
 
 `upper`: Upper case.
+
 `lower`: Lower case.
+
 `strip(char)`: Remove all instances of `char` in string.
+
+`sum(value1, value2, value3...)`: Add the summation of value1... valuen to the record value.
+
+`minus(value1, value2, value3...)`: Subtract the summation of value1... valuen from the record value.
+
+`mul(value1, value2, value3...)`: Multiply record value by each of value1... valuen.
+
+`div(value1, value2, value3...)`: Divide record value by each of value1... valuen.
+
+`power(value1)`: nth power of record value where n is value1.
+
+`max(value1, value2, value3...)`: Maximum value among record value, value1... valuen.
+
+`min(value1, value2, value3...)`: Minimum value among record value, value1... valuen.
+
+Examples:
+```{"name":"Jane Doe"}```
+when formatted by
+```"{name:s$upper,strip( )}"```
+will result in
+```'JANEDOE'```
+
+```{"salary":"40000"}```
+when formatted by
+```"Salary is ${salary:,.2f$mul(1.3),sum(2000)} after 30% increase and performance award of $2000."```
+will result in
+```'Salary is $54,000.00 after 30% increase and performance award of $2000.'```
