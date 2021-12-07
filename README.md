@@ -427,8 +427,11 @@ Syntax:
 ```
 {field_name[!conversion][:[format_spec][$manipulation1(param1,param2...),[$manipulation2(param1,param2...),...]]]}
 ```
+See https://docs.python.org/3/library/string.html#formatstrings for `field_name`, `conversion` and `format_spec`.
 
-Allowed manipulations:
+The following applies to `manipulation`.
+
+Allowed `manipulations`:
 
 `upper`: Upper case.
 
@@ -452,13 +455,21 @@ Allowed manipulations:
 
 Examples:
 ```{"name":"Jane Doe"}```
+
 when formatted by
+
 ```"{name:s$upper,strip( )}"```
+
 will result in
+
 ```'JANEDOE'```
 
 ```{"salary":"40000"}```
+
 when formatted by
+
 ```"Salary is ${salary:,.2f$mul(1.3),sum(2000)} after 30% increase and performance award of $2000."```
+
 will result in
+
 ```'Salary is $54,000.00 after 30% increase and performance award of $2000.'```
