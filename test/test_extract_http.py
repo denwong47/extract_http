@@ -6,7 +6,7 @@ import numpy as np
 
 from extract_http.html_node import get_value_array, get_node_value, parse_node_format, NodeFormatStringInvalid
 from extract_http.extract import extract
-from extract_http.transform import transform_record
+from extract_http.transform import transform_record, transform_formatter
 from extract_http.record_dict import record_dict
 from extract_http.defaults import RECORD_DICT_DELIMITER
 
@@ -294,6 +294,23 @@ class TestExtractHTTP(unittest.TestCase):
             transform_record,
             _tests
         )
+        
+    def test_transform_formatter(self) -> None:
+        _tests = [
+            {
+                "args":{
+                    "format_string":"{test_str:$upper,strip}, {test_int:,d$mul(20),add(15,50)}",
+                    "test_str":"Test String",
+                    "test_int":12345,
+                },
+                "answer":"TESTSTRING, 12,345",
+            }
+        ]
 
+        self.conduct_tests(
+            lambda **args: transform_formatter().format(args["format_string"], **args),
+            _tests
+        )
+    
 if __name__ == "__main__":
     unittest.main()

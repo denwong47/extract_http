@@ -157,8 +157,8 @@ https://www.crummy.com/software/BeautifulSoup/bs4/doc/
 
 ## > locate[] > array
 Dictionary with keys:
-- key : String, in Format String syntax. See Format String section below.
-- value : String, in Format String syntax. See Format String section below.
+- key : String, in Select String syntax. See Select String section below.
+- value : String, in Select String syntax. See Select String section below.
 
 Extract a dictionary of values, of which the keys are defined by the nodes, as opposed to being pre-defined in the configuration.
 
@@ -204,13 +204,13 @@ the following output will be returned:
 
 ## > locate[] > values
 Dictionary with any keys:
-- [parameter_name] : String, in Format String syntax. See Format String section below.
+- [parameter_name] : String, in Select String syntax. See Select String section below.
 
 (WIP)
 
 ## > locate[] > lists
 Dictionary with any keys:
-- [parameter_name] : String, in Format String syntax. See Format String section below.
+- [parameter_name] : String, in Select String syntax. See Select String section below.
 
 Find all the nodes matching
 (WIP)
@@ -226,7 +226,7 @@ Optional Dictionary with any keys:
 [parameter_name] itself is a String in Key String format. See separate section below.
 
 ## > locate[] > transform > [parameter_name] > source
-String, in Format String syntax. See Format String section below.
+String, in Select String syntax. See Select String section below.
 
 Defines where the information for `[parameter_name]` originates.
 
@@ -334,7 +334,7 @@ Refer to `> locate[] > transform` above.
 
 
 
-# Format Strings
+# Select Strings
 Defines what to extract from the node.
 Syntax:
 ```
@@ -419,3 +419,17 @@ will result in:
     },
 ]
 ```
+
+# Format Strings
+An extension of Python's str.format() functionality, adding value manipulations.
+
+Syntax:
+```
+WIP
+```
+
+Allowed manipulations:
+
+`upper`: Upper case.
+`lower`: Lower case.
+`strip(char)`: Remove all instances of `char` in string.

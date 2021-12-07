@@ -1,9 +1,14 @@
+# Basic transformations for extraction time convenience.
+# Useful for 
+
+
 import warnings
 
-import re
 from concurrent.futures import ThreadPoolExecutor
-
+import re
+import string
 from urllib.parse import urljoin
+
 from extract_http.bin import curl, \
                              formatters, \
                              safe_zip
@@ -17,6 +22,36 @@ class native_list(list):
 class iterated_list(list):
     pass
 
+# Custom Formatter class to allow for additional transformations.
+class transform_formatter(string.Formatter):
+
+    def format_field(self, value, format_spec):
+        if ("$" in format_spec):
+            transform_syntax = r"(?P<type>[\w_]+)(?:\((?P<params>[^\)]+)\))?,?"
+            python_format_spec, transform_format_spec = format_spec.split("$", maxsplit=1)
+
+            _transform_switch = {
+                "upper":lambda _value, _params: str(_value).upper(),
+                "lower":lambda _value, _params: str(_value).lower(),
+                "strip":lambda _value, _params: str(_value).replace(_params.pop[0] if _params else " ", ""),
+                # "mul":lambda _value, _params: _value, # WIP
+                None: lambda _value, _params: _value,
+            }
+
+            # For each Transformation
+            for _match in re.finditer(transform_syntax, transform_format_spec, ):
+                _type = _match.group("type")
+                _params = _match.group("params").split(",") if _match.group("params") else []
+
+                value = _transform_switch.get(_type.lower(), _transform_switch[None])(value, _params)
+                
+        else:
+            python_format_spec = format_spec
+            transform_format_spec = []
+            
+        return super().format_field(value, python_format_spec)
+
+# Transform a single record
 def transform_record(
     transform:dict,
     record:dict,
@@ -119,7 +154,7 @@ def transform_record(
             })
 
             # Do the formatting
-            _return.append(source.format(**_subrecord))
+            _return.append(transform_formatter().format(source, **_subrecord))
         
         if (_list_count is not None):
             if is_native_list:
