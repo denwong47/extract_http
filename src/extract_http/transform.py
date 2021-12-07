@@ -11,6 +11,12 @@ from extract_http.record_dict import record_dict
 
 from extract_http.defaults import RECORD_DICT_DELIMITER
 
+class native_list(list):
+    pass
+
+class iterated_list(list):
+    pass
+
 def transform_record(
     transform:dict,
     record:dict,
@@ -63,6 +69,7 @@ def transform_record(
 
         # Establishing list count
         for _formatter in formatters(source):
+            
             _subrecord = record.get(
                 _formatter,
                 None,
@@ -71,8 +78,19 @@ def transform_record(
                 flatten_lists=True,
             )
             
-            if (isinstance(_subrecord, list) and \
-                not isinstance(_subrecord, str)):
+            if (isinstance(_subrecord, list)):
+                # Check if its natively a list
+                if (isinstance(record.get(
+                    _formatter,
+                    None,
+                    delimiter=delimiter,
+                    iterate_lists=False, # False here
+                    flatten_lists=True,
+                ), list)):
+                    is_native_list = True
+                else:
+                    is_native_list = False
+
                 _list_count = len(_subrecord)
                 break
 
@@ -99,12 +117,15 @@ def transform_record(
                 _key:_value \
                     for _key, _value in zip(formatters(source), _subrecord)
             })
-            
+
             # Do the formatting
             _return.append(source.format(**_subrecord))
         
-        if (_list_count):
-            return _return
+        if (_list_count is not None):
+            if is_native_list:
+                return native_list(_return)
+            else:
+                return iterated_list(_return)
         else:
             if (len(_return)>0):
                 return _return.pop(0)
@@ -198,68 +219,85 @@ def transform_record(
         _embed = transform[_key].get("embed", None)
 
         # If source is not defined, assume its the key itself
-        if (not(_source) and (_key in record)):
-            _source = f"\{{{_key}}}"
-
-        if (not(_source) and not (_key in record)):
-            warnings.warn(f"Source not found for transform key {_key}, skipping.")
-        else:
-            if (_source is not None):
-                # THIS IS BY VALUE ONLY - DO NOT ASSIGN TO IT
-                _destination_record_value = lambda : get_source(
-                                                        source=_source,
-                                                        record=record,
-                                                        delimiter=delimiter,
-                                                    )
-
-                # Create the new key if doesn't exist yet
-                record.put(
-                    _key,
-                    _destination_record_value(),
+        if (not(_source)):
+            if (get_source(
+                    source=f"{{{_key}}}",
+                    record=record,
                     delimiter=delimiter,
-                    iterate_lists=True,
-                    replace_list_items=True,
-                )
+                )):
+                _source = f"{{{_key}}}"
+            else:
+                warnings.warn(f"Source not found for transform key {_key}, skipping.")
+                return record
 
-            # REGEX SUBSTITUTION
-            if (_substitute):
-                record.put(
-                    _key,
-                    make_substitution(
-                        substitute=_substitute,
-                        source=_destination_record_value(),
+        # Create a lambda to get the destination value;
+        # this is necessary because it changes after each successful transformation
+        _destination_record_value = lambda iterate_lists: record.get(
+                                                _key,
+                                                default=None,
+                                                delimiter=delimiter,
+                                                iterate_lists=iterate_lists,
+                                            )
+
+        # Get the source value
+        _source_record_value = get_source(
+                source=_source,
+                record=record,
+                delimiter=delimiter,
+            )
+
+        # Check if the list returned is natively a list in the record.
+        # Otherwise iterate_lists will just pop the first element of the list to the record and discard the rest.
+        is_native_list = isinstance(_source_record_value, native_list)
+
+        # Create the new key if doesn't exist yet
+        record.put(
+            _key,
+            _source_record_value,
+            delimiter=delimiter,
+            iterate_lists=(not is_native_list),
+            replace_list_items=True,
+        )
+
+        # REGEX SUBSTITUTION
+        if (_substitute):
+            record.put(
+                _key,
+                make_substitution(
+                    substitute=_substitute,
+                    source=_destination_record_value(True),
+                ),
+                delimiter=delimiter,
+                iterate_lists=(not is_native_list),
+                replace_list_items=True,
+            )
+
+        # EMBED BASE64
+        if (_embed):
+            record.put(
+                _key,
+                embed_base64(
+                    embed=_embed,
+                    source=_destination_record_value(True),
+                    url=url,
                     ),
-                    delimiter=delimiter,
-                    iterate_lists=True,
-                    replace_list_items=True,
-                )
+                delimiter=delimiter,
+                iterate_lists=(not is_native_list),
+                replace_list_items=True,
+            )
 
-            # EMBED BASE64
-            if (_embed):
-                record.put(
-                    _key,
-                    embed_base64(
-                        embed=_embed,
-                        source=_destination_record_value(),
-                        url=url,
-                        ),
-                    delimiter=delimiter,
-                    iterate_lists=True,
-                    replace_list_items=True,
-                )
-
-            # TYPE CHANGE
-            if (_type):
-                record.put(
-                    _key,
-                    change_type(
-                        type=_type,
-                        source=_destination_record_value(),
-                        ),
-                    delimiter=delimiter,
-                    iterate_lists=True,
-                    replace_list_items=True,
-                )
+        # TYPE CHANGE
+        if (_type):
+            record.put(
+                _key,
+                change_type(
+                    type=_type,
+                    source=_destination_record_value(True),
+                    ),
+                delimiter=delimiter,
+                iterate_lists=(not is_native_list),
+                replace_list_items=True,
+            )
             
     return record
         

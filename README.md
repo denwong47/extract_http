@@ -384,8 +384,11 @@ For example, if our data currently contains:
 Then having a `transform` of
 ```
 "transform":{
+    "Employment>>>Salary":{
+        "type":"int",
+    },
     "Employment>>>Terms":{
-        "source":"[{Name} shall be paid ${Employment>>>Salary:,d} annually for the {Employment>>Contract Type}Role of {Employment>>Role}.]",
+        "source":"{Name} shall be paid ${Employment>>>Salary:,d} annually for the {Employment>>Contract Type} Role of {Employment>>Role}.",
     }
 }
 ```
@@ -399,7 +402,7 @@ will result in:
         "Employment":{
             "Contract Type":"Permanent",
             "Role":"Backend Developer",
-            "Salary":"40000",
+!            "Salary":40000,
 +            "Terms":"John Doe shall be paid $40,000 annually for the Permanent Role of Backend Developer.",
         }
     },
@@ -410,7 +413,7 @@ will result in:
         "Employment":{
             "Contract Type":"Contractor",
             "Role":"Data Engineer",
-            "Salary":"52000",
+!            "Salary":52000,
 +            "Terms":"Jane Doe shall be paid $52,000 annually for the Contractor Role of Data Engineer.",
         }
     },
