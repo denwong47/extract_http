@@ -106,6 +106,10 @@ def do_extract_html(
     _params = config.get("params", {})
     _locate = config.get("locate", {})
 
+    for _param in _params:
+        if (_param in kwargs):
+            _params[_param] = kwargs[_param]
+
     if (not (_type and (_url or _file) and _locate)):
         _exception = ConfigIncomplete("HTML Extraction missing configurations. Type, URL and Locate needs to be supplied.")
         raise _exception
@@ -149,6 +153,10 @@ def do_extract_json(
     _file = config.get("file", "").format(**kwargs)
     _params = config.get("params", {})
     _transform = config.get("transform", None)
+
+    for _param in _params:
+        if (_param in kwargs):
+            _params[_param] = kwargs[_param]
     
     if (not (_type and (_url or _file))):
         _exception = ConfigIncomplete("JSON Extraction missing configurations. Type, URL need to be supplied.")

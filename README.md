@@ -427,6 +427,8 @@ Syntax:
 ```
 {field_name[!conversion][:[format_spec][$manipulation1(param1,param2...),[$manipulation2(param1,param2...),...]]]}
 ```
+where `field_name` also accepts Key Strings, allowing for fields from nested dictionaries.
+
 See https://docs.python.org/3/library/string.html#formatstrings for `field_name`, `conversion` and `format_spec`.
 
 The following applies to `manipulation`.
