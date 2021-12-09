@@ -66,7 +66,7 @@ def parse_node_format(
     #     "table>tr>td>img#0.attr[src]",
     #     "table>tr>td>img.attr[src]",
     # ]
-    _pattern = r"^(?P<selector>[^>][^#\s]*?)(?:#?(?P<id>\d+))?(?:\$(?P<source>(?:innerHTML|innerText|stripText|attr|outerHTML))(?:\[(?P<subsource>[^\]]+)\])?)?$"
+    _pattern = r"^(?P<selector>[^>][^#\s]*?)(?:#(?P<id>-?\d+))?(?:\$(?P<source>(?:innerHTML|innerText|stripText|attr|outerHTML))(?:\[(?P<subsource>[^\]]+)\])?)?$"
 
     _matchobj = re.match(_pattern, format)
     if (_matchobj):
@@ -175,17 +175,28 @@ def get_value_records(
     nodes:BeautifulSoup,
 )->list:
 
-    _dicts = get_value_lists(
-        values,
-        nodes,
-    )
+    _record_nodes = nodes if (isinstance(nodes, list)) else [nodes, ]
+    
+    _data = []
 
-    if _dicts:
-        _data = [ dict(zip(_dicts.keys(), _record)) for _record in safe_zip(*_dicts.values()) ]
+    for node in _record_nodes:
+        _dicts = get_value_lists(
+                    values,
+                    node,
+                ) 
+
+        if _dicts:
+            _record = [ dict(zip(_dicts.keys(), _record)) for _record in safe_zip(*_dicts.values()) ]
+        else:
+            _record = []
+
+        _data += _record
+
+
+    if (isinstance(nodes, list)):
+        return _data
     else:
-        _data = []
-
-    return _data
+        return _data.pop(0)
 
 # Need to transfer these over to unittest
 
