@@ -14,7 +14,8 @@ from urllib.parse import urljoin
 
 from extract_http.bin import curl, \
                              formatters, \
-                             safe_zip
+                             safe_zip, \
+                             text_to_bool
 from extract_http.record_dict import record_dict
 
 from extract_http.defaults import RECORD_DICT_DELIMITER
@@ -277,7 +278,7 @@ def transform_record(
             "int":int,
             "str":str,
             "float":float,
-            "bool":bool,
+            "bool":text_to_bool,
             "bytes":lambda text: text.encode("utf-8"),
         }
         try:
@@ -330,8 +331,12 @@ def transform_record(
         _pattern = substitute.get("pattern", None)
         _rep = substitute.get("rep", None)
 
-        if (None in (_pattern, _rep)):
-            warnings.warn(f"Pattern '{_pattern}' or Replacement '{_rep}' not valid, skipping.")
+        if (not all(_pattern, _rep)):
+            warnings.warn(
+                UserWarning(
+                    f"Pattern '{_pattern}' or Replacement '{_rep}' not valid, skipping."
+                )
+            )
             _return = source
         else:  
             _return = re.sub(
@@ -342,12 +347,24 @@ def transform_record(
 
         return _return
 
+    @vectorise
+    def split_value(
+        delimiter:str,
+        source:str,
+    ):
+        # If delimiter is empty or not a string, default it to \s+
+        if (len(delimiter)<=0 if isinstance(delimiter, str) else False):
+            delimiter = None
+        
+        return [ _value.strip() for _value in  source.split(sep=delimiter) ]
+
     record = record_dict(record)
 
     # Each _key in transform represents a new dict key
     # DO NOT PARALLELISE THIS - some subsequent transformations can require earlier ones
     for _key in transform:
         _source = transform[_key].get("source", None)
+        _split = transform[_key].get("split", None)
         _type = transform[_key].get("type", None)
         _substitute = transform[_key].get("substitute", None)
         _embed = transform[_key].get("embed", None)
@@ -392,6 +409,19 @@ def transform_record(
             iterate_lists=(not is_native_list),
             replace_list_items=True,
         )
+
+        # SPLIT STRING
+        if (_split):
+            record.put(
+                _key,
+                split_value(
+                    delimiter=_split, # This is not delimiter <<< - its a variable defined by the config
+                    source=_destination_record_value(True),
+                ),
+                delimiter=delimiter,
+                iterate_lists=False, # Don't iterate lists here - obviously we are expecting lists
+                replace_list_items=True,
+            )
 
         # REGEX SUBSTITUTION
         if (_substitute):

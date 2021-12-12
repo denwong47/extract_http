@@ -1,8 +1,11 @@
+from typing import Union, List
+
 import base64
 import json
 import string
 import cgi, requests
 from requests.exceptions import Timeout
+import bs4.element
 import yaml
 
 from extract_http.exceptions import HTTPRequestTimedOut, \
@@ -144,3 +147,68 @@ def safe_zip(*args, repeat_last=False):
                  for _item in _return])
         else:
             return
+
+# Find a list of subnodes inside a provided list of nodes
+def find_all_nodes(
+    find_all:list,
+    soup:Union[
+        str,
+        bs4.element.Tag,
+        None, # None means the root tag itself
+        List[
+            Union[
+                str,
+                bs4.element.Tag,
+                None # None means the root tag itself
+            ]
+        ]
+    ],
+)->list:
+    if (not isinstance(find_all, list)):
+        find_all = [find_all, ]
+
+    # The first call will be a simple BeautifulSoup object, while all subsequent ones would have been resulted from a do_locate_html_find_all themselves, so a list of nodes.
+    if (not isinstance(soup, list)):
+        _parent_nodes = [soup, ]
+    else:
+        _parent_nodes = soup
+
+    for _search in find_all:
+        _children_nodes = []
+
+        for _parent_node in _parent_nodes:
+            if (isinstance(_search, str)):
+                _children_nodes = _children_nodes + _parent_node.select(_search)
+            elif (_search is None):
+                _children_nodes = _children_nodes + _parent_nodes
+            else:
+                _children_nodes = _children_nodes + _parent_node.find_all(
+                    *_search.get("args", []),
+                    **_search.get("kwargs", {}),
+                    # partial=True
+                )
+        
+        _parent_nodes = _children_nodes
+
+    return _parent_nodes
+
+def text_to_bool(
+    text:str
+    )->bool:
+    _truth = (
+        "yes",
+        "true",
+        "y",
+        "ja",
+        "sí",
+        "oui",
+        "si",
+        "evet",
+        "sim",
+        "tak",
+        "ya",
+        "да",
+        "是",
+    )
+
+    return text.strip().lower() in _truth

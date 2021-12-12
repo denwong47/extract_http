@@ -1,10 +1,18 @@
 import os, sys
 import unittest
-from typing import DefaultDict, Union
+from typing import Union
+import json
+import pickle
+from io import BytesIO
+
+from bs4 import BeautifulSoup
+import bs4.element
 
 import numpy as np
+import pandas as pd
+from pandas.testing import assert_frame_equal
 
-from extract_http.html_node import get_value_array, get_node_value, parse_node_format, NodeFormatStringInvalid
+from extract_http.html_node import get_value_array, get_node_value, get_value_table, parse_node_format, html_table, NodeFormatStringInvalid, TableOrientation
 from extract_http.extract import extract
 from extract_http.transform import transform_record, transform_formatter
 from extract_http.record_dict import record_dict
@@ -23,7 +31,7 @@ class TestCasePickleCorrupted(RuntimeError):
 
 def read_file(
     path:str,
-    output:type=str
+    output:type=str,
 )->Union[str, bytes]:
     try:
         with open(path, f"r{'b' if output is bytes else ''}") as _fHnd:
@@ -39,15 +47,19 @@ def setUpModule() -> None:
     global _test_data
     
     _file_names = [
-        "erco_articlegroups",
+        "intel_alderlake_table.html",
+        "intel_alderlake_table.pickle",
+        "intel_alderlake_table.json",
+        "erco_articlegroups.json",
+        "erco_article_11130.json",
         "erco_specsheet_A2000292.json",
     ]
 
     _test_data = {
         _file_name: \
             read_file(
-                TestExtractHTTP.get_testdata_path(f"{_file_name}.json"),
-                output=str,
+                TestExtractHTTP.get_testdata_path(f"{_file_name}"),
+                output=bytes if (os.path.splitext(_file_name)[1] in [".pickle",]) else str,
             ) for _file_name in _file_names
     }
 
@@ -125,7 +137,15 @@ class TestExtractHTTP(unittest.TestCase):
                     ),
                     _test["answer"],
                 )
+            elif (isinstance(_test["answer"], pd.DataFrame)):
+                _assertion = assert_frame_equal
 
+                _assertion(
+                    func(
+                        **_test["args"]
+                    ),
+                    _test["answer"],
+                )
             else:
                 self.assertEqual(
                     func(
@@ -137,6 +157,7 @@ class TestExtractHTTP(unittest.TestCase):
     def test_parse_node_format(self) -> None:
         _tests = [
             { "args": { "format": ">abc#125" }, "answer": NodeFormatStringInvalid },
+            { "args": { "format": "$innerHTML" }, "answer": {'selector': None, 'id': None, 'source': 'innerHTML', 'subsource': None} },
             { "args": { "format": "div" }, "answer": {'selector': 'div', 'id': None, 'source': 'innerHTML', 'subsource': None} },
             { "args": { "format": "table>tr" }, "answer": {'selector': 'table>tr', 'id': None, 'source': 'innerHTML', 'subsource': None} },
             { "args": { "format": "table>tr>td#0" }, "answer": {'selector': 'table>tr>td', 'id': 0, 'source': 'innerHTML', 'subsource': None} },
@@ -311,6 +332,54 @@ class TestExtractHTTP(unittest.TestCase):
             lambda **args: transform_formatter().format(args["format_string"], **args),
             _tests
         )
+    
+    def test_http_table(self) -> None:
+        _tests = [
+            {
+                "args":{
+                    "obj":BeautifulSoup(_test_data["intel_alderlake_table.html"], "html.parser").find("table"),
+                    "orient":TableOrientation.HEADER_ROW,
+                    "index":0,
+                },
+                "answer":pd.read_pickle(BytesIO(_test_data["intel_alderlake_table.pickle"]), compression="gzip")
+            }
+        ]
+
+        self.conduct_tests(
+            lambda obj, orient, index: html_table.from_bs4_node(
+                obj,
+                orient,
+                index
+            ).dataframe,
+            _tests
+        )
+
+    def test_get_value_table(self) -> None:
+        _tests = [
+            {
+                "args":{
+                    "nodes":BeautifulSoup(_test_data["intel_alderlake_table.html"], "html.parser").select("table"),
+                    "settings":{
+                        "orient":"rows",
+                        "key_index":0,
+                        "keys":{
+                            "CPU":"$innerText",
+                            "URL":"a$attr[href]"
+                        }
+                    },
+                },
+                "answer":json.loads(
+                    _test_data["intel_alderlake_table.json"]
+                )
+            }
+        ]
+
+        self.conduct_tests(
+            get_value_table,
+            _tests
+        )
+
+
     
 if __name__ == "__main__":
     unittest.main()

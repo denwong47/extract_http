@@ -1,0 +1,15 @@
+{
+    "locate":{
+        "search_root":[
+            "body"
+        ],
+        "table":{
+            "orient":"rows",
+            "key_index":0,
+            "keys":{
+                "CPU":"td$innerText",
+                "URL":"a$attr[href]"
+            }
+        }
+    }
+}

@@ -202,6 +202,8 @@ the following output will be returned:
 ]
 ```
 
+If more than one element is found for `key`, the first element will be used as key and a warning issued. Specify the 
+
 ## > locate[] > values
 Dictionary with any keys:
 - [parameter_name] : String, in Select String syntax. See Select String section below.
@@ -219,6 +221,7 @@ Find all the nodes matching
 Optional Dictionary with any keys:
 - [parameter_name] : Dictionary with one or more of the following keys:
   - source : String, in Key String format, see below.
+  - split : String, see below
   - subsitute : Dictionary, see below
   - type : String, see below
   - embed : String, see below
@@ -268,6 +271,14 @@ Further transformations will be executed in the following order:
 - `substitute`
 - `embed`
 - `type`
+
+## > locate[] > transform > [parameter_name] > split
+String, the delimiter used to separate the texts.
+
+Splits the text using the delimiter.
+
+This uses the standard python `str.split()` where sep is the delimiter supplied.
+Providing None or an empty string will default to one or more of whitespaces being the delimiter.
 
 ## > locate[] > transform > [parameter_name] > substitute
 Dictionary with both of the following keys:
@@ -338,8 +349,9 @@ Refer to `> locate[] > transform` above.
 Defines what to extract from the node.
 Syntax:
 ```
-BS4_SELECT_STRING[$(innerHTML|innerText|stripText|outerHTML|attr[ATTR_NAME])]
+BS4_SELECT_STRING[#id][$(innerHTML|innerText|stripText|outerHTML|attr[ATTR_NAME])]
 ```
+where `id` is the nth member found to fulfil the criteria, starting from 0.
 
 Typical Examples:
 - `div.description>ul` (assumes innerHTML if not specified)
