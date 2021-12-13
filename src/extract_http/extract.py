@@ -7,7 +7,8 @@ from extract_http.exceptions import FileIOError, \
 from extract_http.html_node import  find_all_nodes, \
                                     get_value_array, \
                                     get_value_lists, \
-                                    get_value_records
+                                    get_value_records, \
+                                    get_value_table
 from extract_http.transform import  transform_record
 
 from extract_http.defaults import RECORD_DICT_DELIMITER
@@ -37,6 +38,7 @@ def do_locate_html(
         _values = _locate_group.get("values", None)
         _array = _locate_group.get("array", None) or _locate_group.get("record", None)
         _lists = _locate_group.get("lists", None)
+        _table = _locate_group.get("table, None")
 
         _transform = _locate_group.get("transform", {})
 
@@ -54,6 +56,11 @@ def do_locate_html(
             _data_group = get_value_array(
                 _array["key"],
                 _array["value"],
+                _nodes,
+            )
+        elif (_table):
+            _data_group = get_value_table(
+                _table,
                 _nodes,
             )
 

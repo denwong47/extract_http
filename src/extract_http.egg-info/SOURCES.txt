@@ -7,6 +7,7 @@ src/extract_http/defaults.py
 src/extract_http/exceptions.py
 src/extract_http/extract.py
 src/extract_http/html_node.py
+src/extract_http/html_table.py
 src/extract_http/record_dict.py
 src/extract_http/transform.py
 src/extract_http.egg-info/PKG-INFO
