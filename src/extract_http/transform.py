@@ -331,7 +331,7 @@ def transform_record(
         _pattern = substitute.get("pattern", None)
         _rep = substitute.get("rep", None)
 
-        if (not all(_pattern, _rep)):
+        if (not all((_pattern, _rep))):
             warnings.warn(
                 UserWarning(
                     f"Pattern '{_pattern}' or Replacement '{_rep}' not valid, skipping."
@@ -369,6 +369,8 @@ def transform_record(
         _substitute = transform[_key].get("substitute", None)
         _embed = transform[_key].get("embed", None)
 
+        # print (_key, _source, _split, _type, _substitute, _embed)
+
         # If source is not defined, assume its the key itself
         if (not(_source)):
             if (get_source(
@@ -379,7 +381,7 @@ def transform_record(
                 _source = f"{{{_key}}}"
             else:
                 warnings.warn(f"Source not found for transform key {_key}, skipping.")
-                return record
+                continue
 
         # Create a lambda to get the destination value;
         # this is necessary because it changes after each successful transformation

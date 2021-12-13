@@ -38,7 +38,7 @@ def do_locate_html(
         _values = _locate_group.get("values", None)
         _array = _locate_group.get("array", None) or _locate_group.get("record", None)
         _lists = _locate_group.get("lists", None)
-        _table = _locate_group.get("table, None")
+        _table = _locate_group.get("table", None)
 
         _transform = _locate_group.get("transform", {})
 
@@ -110,8 +110,8 @@ def do_extract_html(
     _type = config.get("type", "").format(**kwargs)
     _url = config.get("url", "").format(**kwargs)
     _file = config.get("file", "").format(**kwargs)
-    _params = config.get("params", {})
-    _locate = config.get("locate", {})
+    _params = config.get("params", {}).copy()
+    _locate = config.get("locate", {}).copy()
 
     for _param in _params:
         if (_param in kwargs):

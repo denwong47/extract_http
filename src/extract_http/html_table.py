@@ -218,13 +218,14 @@ class html_table():
             for _index, _row in self.dataframe.iterrows():
                 _dict = {}
                 for _key, _value in _row.iteritems():
-                    _record_key = create_tag(_key).text.strip()
+                    _record_key = create_tag(_key).text.strip().replace("\n", " ")
                     _record_value = map_keys(
                         _record_key,
                         create_tag(_value),
                         keys
-                    )
+                    ) or _dict.get(_record_key, None)
                     _dict[_record_key] = _record_value
+
                     
                 _records.append(_dict)
 
