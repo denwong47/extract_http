@@ -110,9 +110,16 @@ def do_extract_html(
     _type = config.get("type", "").format(**kwargs)
     _url = config.get("url", "").format(**kwargs)
     _file = config.get("file", "").format(**kwargs)
-    _params = config.get("params", {}).copy()
-    _locate = config.get("locate", {}).copy()
+    _params = config.get("params", {})
+    _locate = config.get("locate", {})
 
+    # Type checking parameters input
+    if (not (isinstance(_params, dict))):
+        _params = {}
+    else:
+        _params = _params.copy()
+
+    # Substituting any default parameters with runtime parameters
     for _param in _params:
         if (_param in kwargs):
             _params[_param] = kwargs[_param]

@@ -75,15 +75,20 @@ def get_node_attrvalue(
             "outerHTML": lambda node, subsource: str(node),
         }
 
-        return unicodedata.normalize(
-                "NFKD",
-                _source_switch.get(
-                    source,
-                    _source_switch["innerHTML"]
-                )(
-                    node,
-                    subsource
-                ).strip())
+        _source_data = _source_switch.get(
+                                            source,
+                                            _source_switch["innerHTML"]
+                                        )(
+                                            node,
+                                            subsource
+                                        )
+
+        if (_source_data):
+            return unicodedata.normalize(
+                    "NFKD",
+                    _source_data.strip())
+        else:
+            return None
     else:
         return None
 
@@ -249,9 +254,11 @@ def get_value_table(
         else:
             _html_table.merge(_obj)
 
-    _return = _html_table.export(
-        _keys
-    )
-
+    if (_html_table):
+        _return = _html_table.export(
+            _keys
+        )
+    else:
+        _return = []
     
     return _return

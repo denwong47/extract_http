@@ -59,6 +59,7 @@ class html_table():
     ):
         self.dataframe = dataframe
 
+
     @classmethod
     def from_bs4_node(
         cls,
@@ -189,18 +190,20 @@ class html_table():
 
                 _col_id = _get_next_cell(_row_id)
 
-                # OLD NUMPY ARRAY BASED SOLUTION
-                # _array[
-                #     _row_id:min(_shape[0], _row_id+_rowspan),
-                #     _col_id:min(_shape[1], _col_id+_colspan)
-                # ] = _table_cell
+                if (_col_id is not None):
 
-                _dataframe.iloc[
-                    _row_id:min(_shape[0], _row_id+_rowspan),
-                    _col_id:min(_shape[1], _col_id+_colspan)
-                ] = str(_table_cell)
-                # We are turning _table_cell into a string because pd.DataFrame automatically converts a Tag into a NavigableString, which loses all the attrs.
-                # Its not very efficient, perhaps one day we'll turn this into a full Python List implementation...
+                    # OLD NUMPY ARRAY BASED SOLUTION
+                    # _array[
+                    #     _row_id:min(_shape[0], _row_id+_rowspan),
+                    #     _col_id:min(_shape[1], _col_id+_colspan)
+                    # ] = _table_cell
+
+                    _dataframe.iloc[
+                        _row_id:min(_shape[0], _row_id+_rowspan),
+                        _col_id:min(_shape[1], _col_id+_colspan)
+                    ] = str(_table_cell)
+                    # We are turning _table_cell into a string because pd.DataFrame automatically converts a Tag into a NavigableString, which loses all the attrs.
+                    # Its not very efficient, perhaps one day we'll turn this into a full Python List implementation...
                 
         return _dataframe
 
@@ -225,7 +228,6 @@ class html_table():
                         keys
                     ) or _dict.get(_record_key, None)
                     _dict[_record_key] = _record_value
-
                     
                 _records.append(_dict)
 
