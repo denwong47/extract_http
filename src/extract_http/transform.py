@@ -297,31 +297,34 @@ def transform_record(
     ):
         _data = []
 
-        # Fetch URL
-        if (embed == "url"):
-            if (isinstance(url, str)):
-                prep_url = lambda _url: urljoin(url, _url)
-            else:
-                prep_url = lambda _url: _url
+        if (source is not None):
+            # Fetch URL
+            if (embed == "url"):
+                if (isinstance(url, str)):
+                    prep_url = lambda _url: urljoin(url, _url)
+                else:
+                    prep_url = lambda _url: _url
 
-            _urls = [ 
-                prep_url(_url) for _url in ([ source, ] if isinstance(source, str) else source)
+                _urls = [ 
+                    prep_url(_url) for _url in ([ source, ] if (not isinstance(source, list)) else source)
+                ]
+                
+                with ThreadPoolExecutor() as executor:
+                    _data = executor.map(lambda _url:curl(_url, params, encode="base64text"), _urls)
+
+            _data = [
+                (_result if (not isinstance(_result, Exception)) else None) for _result in list(_data)
             ]
-            
-            with ThreadPoolExecutor() as executor:
-                _data = executor.map(lambda _url:curl(_url, params, encode="base64text"), _urls)
 
-        _data = [
-            (_result if (not isinstance(_result, Exception)) else None) for _result in list(_data)
-        ]
-
-        if (isinstance(source, str)):
-            if (len(_data) <= 0):
-                return None
+            if (isinstance(source, str)):
+                if (len(_data) <= 0):
+                    return None
+                else:
+                    return _data[0]
             else:
-                return _data[0]
+                return _data
         else:
-            return _data
+            return None
 
     @vectorise
     def make_substitution(
