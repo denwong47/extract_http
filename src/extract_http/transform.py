@@ -5,6 +5,7 @@
 import warnings
 
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from enum import Enum
 import math
 import re
@@ -198,36 +199,44 @@ def transform_record(
         # Work out if there is a list involved in the formatters
         _list_count = None
 
+        # Resolve the magic_keywords first (potential security risk? magic_keywords can invoke trigger formatters.)
+        source = magic_keywords(source)
+
         if (isinstance(record, dict) and \
             not isinstance(record, record_dict)):
             record = record_dict(record)
 
         # Establishing list count
-        for _formatter in formatters(source):
-            
-            _subrecord = record.get(
-                _formatter,
-                None,
-                delimiter=delimiter,
-                iterate_lists=True,
-                flatten_lists=True,
-            )
-            
-            if (isinstance(_subrecord, list)):
-                # Check if its natively a list
-                if (isinstance(record.get(
+        if (_formatters := tuple(formatters(source))):
+            # If there are formatters to begin with
+            for _formatter in _formatters:
+                
+                _subrecord = record.get(
                     _formatter,
                     None,
                     delimiter=delimiter,
-                    iterate_lists=False, # False here
+                    iterate_lists=True,
                     flatten_lists=True,
-                ), list)):
-                    is_native_list = True
-                else:
-                    is_native_list = False
+                )
+                
+                if (isinstance(_subrecord, list)):
+                    # Check if its natively a list
+                    if (isinstance(record.get(
+                        _formatter,
+                        None,
+                        delimiter=delimiter,
+                        iterate_lists=False, # False here
+                        flatten_lists=True,
+                    ), list)):
+                        is_native_list = True
+                    else:
+                        is_native_list = False
 
-                _list_count = len(_subrecord)
-                break
+                    _list_count = len(_subrecord)
+                    break
+        else:
+            # If there is are no formatters to begin with, we can simply return the constant, with the magic_keywords() already applied.
+            return source
 
         
         _return = []
@@ -254,7 +263,9 @@ def transform_record(
             })
 
             # Do the formatting
-            _return.append(transform_formatter().format(source, **_subrecord))
+            _value = transform_formatter().format(source, **_subrecord)
+
+            _return.append(_value)
         
         if (_list_count is not None):
             if is_native_list:
@@ -268,6 +279,20 @@ def transform_record(
                 return None
         # else:
         #     return source.format(**record)
+
+    _recognised_keywords = {
+        "UTC_ISO":lambda : datetime.utcnow().isoformat(),
+        "UTC_UNIX":lambda : str(datetime.utcnow().timestamp()),
+    }
+
+    def magic_keywords(
+        text:str,
+    ):
+        if (isinstance(text, str)):
+            for _keyword, _func in zip(_recognised_keywords, _recognised_keywords.values()):
+                text = text.replace(f"%%{_keyword}", _func())
+        
+        return text
 
     @vectorise
     def change_type(
@@ -405,6 +430,8 @@ def transform_record(
         # Check if the list returned is natively a list in the record.
         # Otherwise iterate_lists will just pop the first element of the list to the record and discard the rest.
         is_native_list = isinstance(_source_record_value, native_list)
+
+        
 
         # Create the new key if doesn't exist yet
         record.put(
