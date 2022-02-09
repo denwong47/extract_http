@@ -1,6 +1,8 @@
 # extract_http
  Web Scraping through configuration dictionaries
 
+## Premise of this module
+ Web Scraping
 
 ## extract_http.extract.extract
 
@@ -13,56 +15,85 @@ def extract(
 ```
 
 # Configuration Dictionary
-Example in YAML format:
+Example configuration:
 ```
-type: html
-url: https://lightfinder.erco.com/specsheets/show/{art_no:s}/en/
-params:
-    api: v1.1
-locate:
-    - search_root:
-        - div.specsheet-header
-      values:
-        art_no: h4.spec-articlenumber
-        art_name: h3.specsheet-title$stripText
-    - search_root:
-        - table.specs-table>tr
-      array:
-        key: td#0
-        value: td#1$stripText
-      transform:
-        art_no:
-            source: "{URL}"
-            substitute:
-                pattern: "^.+/(?P<art_no>[A\\d\\.]+)/$"
-                rep: "\\g<art_no>"
-        description:
-            source: "{art_no} {Light distribution} light in {Colour of light} colour"
-        Weight:
-            substitute:
-                pattern: "^(?P<numeric_weight>[\\d\\.]+)\\s*kg$"
-                rep: "\\g<numeric_weight>"
-            type: float
-    - search_root:
-        - div.description>ul
-      lists:
-        description: li.-entry$stripText
-    - search_root:
-        - div.acceccoir
-      values:
-        img_src: img.product-image$attr[src]
-        img_alt: img.product-image$attr[alt]
-        art_no: span.access-articlenumber
-        descripton: span.access-name
-        manual_pdf: div.access-download.access-manual>a$attr[href]
-        specsheet_pdf: div.access-download.access-specsheet>a$attr[href]
-      transform:
-        img_base64:
-            source: "{img_src}"
-            embed: url
-        manual_base64:
-            source: "{manual_pdf}"
-            embed: url
+{
+   "type": "html",
+   "url": "https://lightfinder.erco.com/specsheets/show/{art_no:s}/en/",
+   "params": {
+      "api": "v1.1"
+   },
+   "locate": [
+      {
+         "search_root": [
+            "div.specsheet-header"
+         ],
+         "values": {
+            "art_no": "h4.spec-articlenumber",
+            "art_name": "h3.specsheet-title$stripText"
+         }
+      },
+      {
+         "search_root": [
+            "table.specs-table>tr"
+         ],
+         "array": {
+            "key": "td#0",
+            "value": "td#1$stripText"
+         },
+         "transform": {
+            "art_no": {
+               "source": "{URL}",
+               "substitute": {
+                  "pattern": "^.+/(?P<art_no>[A\\d\\.]+)/$",
+                  "rep": "\\g<art_no>"
+               }
+            },
+            "description": {
+               "source": "{art_no} {Light distribution} light in {Colour of light} colour"
+            },
+            "Weight": {
+               "substitute": {
+                  "pattern": "^(?P<numeric_weight>[\\d\\.]+)\\s*kg$",
+                  "rep": "\\g<numeric_weight>"
+               },
+               "type": "float"
+            }
+         }
+      },
+      {
+         "search_root": [
+            "div.description>ul"
+         ],
+         "lists": {
+            "description": "li.-entry$stripText"
+         }
+      },
+      {
+         "search_root": [
+            "div.acceccoir"
+         ],
+         "values": {
+            "img_src": "img.product-image$attr[src]",
+            "img_alt": "img.product-image$attr[alt]",
+            "art_no": "span.access-articlenumber",
+            "descripton": "span.access-name",
+            "manual_pdf": "div.access-download.access-manual>a$attr[href]",
+            "specsheet_pdf": "div.access-download.access-specsheet>a$attr[href]"
+         },
+         "transform": {
+            "img_base64": {
+               "source": "{img_src}",
+               "embed": "url"
+            },
+            "manual_base64": {
+               "source": "{manual_pdf}",
+               "embed": "url"
+            }
+         }
+      }
+   ]
+}
 ```
 
 ## > type

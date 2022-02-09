@@ -1,3 +1,9 @@
+"""
+extract.py
+
+The main Extraction sub-module.
+"""
+
 from bs4 import BeautifulSoup
 
 from extract_http.bin import curl
@@ -20,6 +26,11 @@ def do_locate_html(
     url:str=None,
     delimiter:str=RECORD_DICT_DELIMITER,
 )->list:
+    """
+    Take the "locate" key of the config dictionary,
+    and do the relevant actions, most notably looking for html tags as specified in "search_root".
+    """
+
     _data = []
 
     try:
@@ -82,6 +93,13 @@ def do_transform(
     url:str=None,
     delimiter:str=RECORD_DICT_DELIMITER,
 )->list:
+    """
+    Take the "transform" key of a "locate" dictionary,
+    and do the relevant transformation of data already extracted.
+
+    If the data is a list, iterate through the items and call itself on all of them. This is most likely the case as extractions results in List[Dict[]].
+    If the data is a dict, call transform_record.
+    """
     if (isinstance(data, list)):
         # We need to replace the object of data itself, so we can't just throw away the return value
         for _id, _obj in enumerate(data):
@@ -106,7 +124,15 @@ def do_extract_html(
     config:dict,
     **kwargs,
     )->str:
-    # Example
+    """
+    Perform extraction from a full configuration dictionary,
+    provided that the source is a HTML.
+
+    There are two ways to use this:
+    - call this with a config["type"] == "html", then it will fetch the source via curl(); or
+    - call this with a config["file"] containing a local file name, then the file will be open and read as the HTML input.
+    """
+    
     _type = config.get("type", "").format(**kwargs)
     _url = config.get("url", "").format(**kwargs)
     _file = config.get("file", "").format(**kwargs)
@@ -161,6 +187,14 @@ def do_extract_json(
     delimiter:str=RECORD_DICT_DELIMITER,
     **kwargs,
     )->dict:
+    """
+    Perform extraction from a full configuration dictionary,
+    provided that the source is a JSON.
+
+    There are two ways to use this:
+    - call this with a config["type"] == "json", then it will fetch the source via curl(); or
+    - call this with a config["file"] containing a local file name, then the file will be open and read as the JSON input.
+    """
 
     _type = config.get("type", "").format(**kwargs)
     _url = config.get("url", "").format(**kwargs)
@@ -209,6 +243,13 @@ def extract(
     config:dict,
     **kwargs,
 )->list:
+    """
+    High level extraction method.
+    This is the function to use on a full config dict.
+
+    Reads config["type"] to determine which method to call.
+    """
+
     _type = config.get("type", "").format(**kwargs)
 
     if (not _type):

@@ -1,4 +1,11 @@
-from typing import Union, List
+"""
+bin.py
+
+Generic functions shared by more than one sub-modules.
+This is to avoid circular imports.
+"""
+
+from typing import Any, Iterable, Union, List
 
 import base64
 import json
@@ -12,12 +19,18 @@ from extract_http.exceptions import HTTPRequestTimedOut, \
                                     HTTPRequestUnknownError, \
                                     HTTPRequestError \
 
-# Fetch url and return in the appropriate data type
+
+
+
 def curl(
     url:str,
     params:dict=None,
     encode:str="base64",
 ):
+    """
+    Fetch url and return in the appropriate data type
+    """
+
     if (not isinstance(params, dict)): params = {}
 
     try:
@@ -90,8 +103,10 @@ def curl(
         return HTTPRequestError(f"Generic HTTP Error {r.status_code}", err_code=r.status_code, headers=r.headers, content=r.text)
 
 
-# Generator yielding all formatters in a string
 def formatters(format:str):
+    """
+    Generator yielding all formatters in a f-string
+    """
     _generator = (_formatter[1] for _formatter in string.Formatter().parse(format))
     for _yield in _generator:
         if (_yield):
@@ -102,6 +117,11 @@ def formatters(format:str):
 
 
 class GeneratorExhausted(StopIteration):
+    """
+    Exception Class to indicate Generator is Exhausted instead of
+        throwing a StopIteration
+    """
+
     def __init__(self, *args, last_value):
         super().__init__(*args)
         self.last_value = last_value
@@ -114,9 +134,12 @@ class GeneratorExhausted(StopIteration):
         return None
 
 
-# Safe Generator will return None indefinitely after StopIteration;
-# It can also force non-iterables to yield itself once like an iterator.
 def safe_generator(obj, repeat=True):
+    """
+    Safe Generator will return None indefinitely after StopIteration;
+    It can also force non-iterables to yield itself once like an iterator.
+    """
+
     if (hasattr(obj, "__iter__") and not isinstance(obj, str)):
         _generator = obj.__iter__
     else:
@@ -133,11 +156,18 @@ def safe_generator(obj, repeat=True):
         except StopIteration as e:
             yield GeneratorExhausted("Generator has no more values.", last_value=_last_value)
 
-# Safe Zip is like zip(), but it will not complain even if non-iterables are included.
-# It will return None for exhausted elements.
-#
-# This is useful for dealing with dicts that may or may not contain NoneTypes - we are web scrapping and there are pages that we inevitably will not find the tags we want.
-def safe_zip(*args, repeat_last=False):
+
+def safe_zip(*args, repeat_last=False)->Iterable[Any]:
+    """
+    Safe Zip is like zip(), but it will not complain even
+        if non-iterables are included.
+    It will return None for exhausted elements.
+
+    This is useful for dealing with dicts that may or may not
+        contain NoneTypes - we are web scrapping and
+        there are pages that we inevitably will not find
+        the tags we want.
+    """
     _generators = [safe_generator(obj) for obj in args]
     while (True):
         _return = [next(_generator) for _generator in _generators]
@@ -148,7 +178,7 @@ def safe_zip(*args, repeat_last=False):
         else:
             return
 
-# Find a list of subnodes inside a provided list of nodes
+
 def find_all_nodes(
     find_all:list,
     soup:Union[
@@ -164,6 +194,10 @@ def find_all_nodes(
         ]
     ],
 )->list:
+    """
+    Find a list of BS4 subnodes inside a provided list of BS4 nodes
+    """
+
     if (not isinstance(find_all, list)):
         find_all = [find_all, ]
 
@@ -210,5 +244,14 @@ def text_to_bool(
         "да",
         "是",
     )
+    """
+    Convert some known string Trues into bools.
+    
+    Mostly useful for web scrapping pages that has tables stating yes or no.
 
-    return text.strip().lower() in _truth
+    For string numbers, anything greater than 0 is consider True.
+    """
+    if (text.isnumeric()):
+        return float(text)>0
+    else:
+        return text.strip().lower() in _truth

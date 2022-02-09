@@ -1,3 +1,13 @@
+"""
+exceptions.py
+
+All Exceptions that this module can raise.
+
+Some Exceptions won't be raised immediately, but instead being returned, to avoid multiple layers of try-catch.
+All Exceptions will bool() as False, so that the returned values can be checked for if(_return) to see if it succeeded.
+"""
+
+
 import www_authenticate
 from requests.exceptions import Timeout, HTTPError
 
@@ -12,6 +22,11 @@ class FileIOError(RuntimeError):
     __nonzero__ = __bool__
 
 class HTMLParseError(ValueError):
+    """
+    Save the HTML if parsing resulted in error.
+    Call HTMLParseError(msg, html=html) to save up the HTML.
+    """
+
     def __init__(self, *args, html:str=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.html = html
@@ -31,6 +46,10 @@ class HTTPRequestUnknownError(RuntimeError):
     __nonzero__ = __bool__
 
 class HTTPRequestError(HTTPError):
+    """
+    Save the error code and headers if curl resulted in an error.
+    """
+
     def __init__(self, *args, err_code:int=None, headers:dict=None, content:str=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.err_code = err_code
