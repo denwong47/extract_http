@@ -1,3 +1,16 @@
+"""
+html_node.py
+
+This module deals with a single BS4 node.
+Once the node is identified, it can be extracted with different ways:
+- text transformations
+- get values from children nodes
+- get values as lists (useful for ul and ol etc)
+- get values as an array/horizontal table ()
+- get values from a table using the column headers as key
+"""
+
+
 import re
 import typing
 from typing import Union

@@ -1,3 +1,9 @@
+"""
+html_table.py
+
+Deals with a single html table tag.
+"""
+
 from __future__ import annotations # enable in class type hint of itself
 
 from enum import Enum

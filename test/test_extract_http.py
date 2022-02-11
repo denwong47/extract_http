@@ -15,7 +15,7 @@ from pandas.testing import assert_frame_equal
 from extract_http.html_node import get_value_array, get_node_value, get_value_table, parse_node_format, html_table, NodeFormatStringInvalid, TableOrientation
 from extract_http.extract import extract
 from extract_http.transform import transform_record, transform_formatter
-from extract_http.record_dict import record_dict
+from extract_http.record_dict import record_dict, RecordNodeNotFound
 from extract_http.defaults import RECORD_DICT_DELIMITER
 
 class TestCaseFileIOError(IOError):
@@ -53,6 +53,7 @@ def setUpModule() -> None:
         "erco_articlegroups.json",
         "erco_article_11130.json",
         "erco_specsheet_A2000292.json",
+        "ridi_sku_list_zug.json",
     ]
 
     _test_data = {
@@ -380,6 +381,40 @@ class TestExtractHTTP(unittest.TestCase):
         )
 
 
+    def test_record_dict_get(self) -> None:
+        _dict = record_dict({
+            "root":json.loads(_test_data["ridi_sku_list_zug.json"])
+        })
+
+        _tests = [
+            {
+                "args":{
+                    "key":"root>>>Data Sheet",
+                    "default":None,
+                    "delimiter":">>>",
+                    "iterate_lists":True,
+                    "flatten_lists":True,
+                },
+                "answer":[
+                    _item.get("Data Sheet", None) \
+                        for _item in _dict["root"]
+                ]
+            },
+            {
+                "args":{
+                    "key":"root>>>Data Sheet",
+                    "delimiter":">>>",
+                    "iterate_lists":False,
+                    "flatten_lists":True,
+                },
+                "answer":RecordNodeNotFound
+            }
+        ]
+
+        self.conduct_tests(
+            _dict.get,
+            _tests
+        )
     
 if __name__ == "__main__":
     unittest.main()

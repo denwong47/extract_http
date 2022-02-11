@@ -1,4 +1,21 @@
-import itertools
+"""
+record_dict.py
+
+A class of dict called record_dict, a subclass of dict.
+
+Allows the getting and putting of data in nested dicts via delimited key strings, such as
+    record_dict().get("key1>>>key2>>>key3")
+refers to
+{
+    "key1":{
+        "key2":{
+            "key3": _obj
+        }
+    }
+}
+"""
+
+
 from typing import Any, Union
 
 class RecordNodeNotFound(ValueError):
@@ -11,11 +28,32 @@ class record_dict(dict):
         self,
         key:Union[str, list],
         default:Any=RecordNodeNotFound("Requested node does not exist."), # Using this instead of None allows default to be actually None
-        delimiter:str=">>>",
+        delimiter:str=">>>",        # This a string literal because 
         iterate_lists:bool=True,
         flatten_lists:bool=True,
         **kwargs
     )->Any:
+        """
+        Like dict.get(), try to fetch a value via a key - but it can search nested dicts inside itself.
+
+        The exact nesting is specified through delimited string - Default delimiter is ">>>", i.e.
+            record_dict().get("key1>>>key2>>>key3")
+        refers to
+        {
+            "key1":{
+                "key2":{
+                    "key3": _obj
+                }
+            }
+        }
+
+        If it fails, default is returned instead.
+
+        In addition, iterate_lists allows the searching of keys inside records, i.e. List[Dict].
+        If True, it will continue to search inside any lists it encounters, and look for dicts with the specified subkey instead.
+        It will return the values in form of a list at that level.
+        """
+
         if (isinstance(key, str)):
             key = key.split(delimiter)
 
@@ -80,6 +118,27 @@ class record_dict(dict):
         replace_list_items:bool=True,
         **kwargs,
     )->None:
+        """
+        Opposite of get(), try to store a value via a key - but it can search nested dicts inside itself.
+
+        The exact nesting is specified through delimited string - Default delimiter is ">>>", i.e.
+            record_dict().put("key1>>>key2>>>key3")
+        refers to
+        {
+            "key1":{
+                "key2":{
+                    "key3": _obj
+                }
+            }
+        }
+
+        If the key does not exists, it is created instead.
+
+        In addition, iterate_lists allows the expansion of lists into records, i.e. List[Dict].
+        If True, it will expect a list as value, and iterate through the items to put each one into one record under the specified subkey.
+        
+        """
+
         # Create node if it doesn't exist
         def create_node(
             self,
