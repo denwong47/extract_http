@@ -22,9 +22,22 @@ from extract_http.record_dict import record_dict
 from extract_http.defaults import RECORD_DICT_DELIMITER
 
 class native_list(list):
+    """
+    Empty wrapper around list so that we can identify the type of list using isinstance()
+
+    A native list is a dict where dict[key] is a list.
+    Used with record_dict.
+    """
     pass
 
 class iterated_list(list):
+    """
+    Empty wrapper around list so that we can identify the type of list using isinstance()
+    
+    An iterated list is a record_dict where it contained a list of dictionaries, and each dict[key] contains a scalar value.
+    When record_dict.get(key) is used and iterate_list is True, record_dict will return a list containing all the values from each dictionary sequentially.
+    Used with record_dict.
+    """
     pass
 
 class ArithmaticCalculationError(ValueError):
@@ -33,6 +46,10 @@ class ArithmaticCalculationError(ValueError):
     __nonzero__ = __bool__
 
 class ArithmaticCalculationType(Enum):
+    """
+    Enum Class that is used in formatter.
+    
+    """
     SUM = "sum"
     MINUS = "minus"
     MULTIPLY = "mul"
@@ -121,7 +138,32 @@ def maths_transformation(
 
 # Custom Formatter class to allow for additional transformations.
 class transform_formatter(string.Formatter):
+    """
+    Special String Formatter.
 
+    Takes the value and do basic arithmatic transformations BEFORE passing onto standard String Formatter.
+    It works by using $ to denote the start of transformations, with each subsequent ones delimiteed by commas. Each transformation is sequentially applied.
+
+    Example:
+        salary:,.2f$mul(1.3),sum(2000)
+    This will 
+    1. look for the value of salary,
+    2. muliply the value by 1.3,
+    3. add 2000 on the resultant value, then
+    4. display it as a comma separated two decimal floating point.
+
+    3 Types of Transformations are hardcoded:
+    - $upper            - Upper Case transformation
+    - $lower            - Lower Case transformation
+    - $strip(char)      - Remove all occurances of spaces or char, if specified.
+    
+    Other transformations are defined under ArithmaticCalculationType.
+
+    Parameters to the transformation is supplied in (param1, param2,...), the whole structure of which is optional.
+    Excess parameters are discarded without warning.
+
+    This is mostly used for conversion of units.
+    """
     def format_field(self, value, format_spec):
         if ("$" in format_spec):
             transform_syntax = r"(?P<type>[\w_]+)(?:\((?P<params>[^\)]+)\))?,?"
@@ -146,6 +188,7 @@ class transform_formatter(string.Formatter):
                 value = _transform_switch.get(_type.lower(), _transform_switch[None])(value, _params)
                 
         else:
+            # If $ doesn't exist to begin with, the pass the whole format_spec.
             python_format_spec = format_spec
             transform_format_spec = []
             
@@ -159,9 +202,19 @@ def transform_record(
     url:str=None,
     delimiter:str=RECORD_DICT_DELIMITER,
 )->dict:
+    """
+    Main function to apply transformations from transform onto record.
+    url is supplied to calculate full url from relative ones; needed for base64.
+    delimiter is used for nested key strings in form of "key1>>>key1a>>>key1ai".
+    """
 
-    # Allow the dict content to be a list and still apply the transformation by iteration
     def vectorise(func):
+        """
+        Decorator for transformation function.
+
+        Vectorise a transformation to allow for lists to be transformed by iteration.
+        """
+
         def wrapper(*args, **kwargs):
             _source = kwargs.get("source", None)
 
@@ -196,6 +249,15 @@ def transform_record(
         record:record_dict,
         delimiter:str=RECORD_DICT_DELIMITER,
     ):
+        """
+        Get source data to be passed to transformations.
+
+        source is a python format string, in which nested keys are allowed.
+        record is the record_dict object containing the entire set of data from "locate>>>search_root".
+
+        delimiter is a string defining the delimiter used in source.
+        """
+
         # Work out if there is a list involved in the formatters
         _list_count = None
 
@@ -280,6 +342,9 @@ def transform_record(
         # else:
         #     return source.format(**record)
 
+
+
+
     _recognised_keywords = {
         "UTC_ISO":lambda : datetime.utcnow().isoformat(),
         "UTC_UNIX":lambda : str(datetime.utcnow().timestamp()),
@@ -288,6 +353,12 @@ def transform_record(
     def magic_keywords(
         text:str,
     ):
+        """
+        Magic Keywords are special phrases that will automatically be substituted with predefined values.
+
+        These are defined in _recognised_keywords.
+        """
+
         if (isinstance(text, str)):
             for _keyword, _func in zip(_recognised_keywords, _recognised_keywords.values()):
                 text = text.replace(f"%%{_keyword}", _func())
@@ -299,6 +370,12 @@ def transform_record(
         type:str,
         source:str,
     ):
+        """
+        key "type"
+
+        Change object type for value.
+        """
+
         _type_switch = {
             "int":int,
             "str":str,
@@ -320,6 +397,14 @@ def transform_record(
         url:str=None,
         params:dict=None,
     ):
+        """
+        key "embed"
+
+        Use a source value as url, fetch the url, and put the resultant data as base64 value.
+
+        Mostly used for embedding images.
+        """
+
         _data = []
 
         if (source is not None):
@@ -356,6 +441,12 @@ def transform_record(
         substitute:dict,
         source:str,
     ):
+        """
+        key "subsitute"
+
+        Regular Expression substitutions.
+        """
+
         _pattern = substitute.get("pattern", None)
         _rep = substitute.get("rep", None)
 
@@ -380,12 +471,20 @@ def transform_record(
         delimiter:str,
         source:str,
     ):
+        """
+        key "split"
+
+        Split values into a list using delimiter as sep.
+        """
+
         # If delimiter is empty or not a string, default it to \s+
         if (len(delimiter)<=0 if isinstance(delimiter, str) else False):
             delimiter = None
         
         return [ _value.strip() for _value in  source.split(sep=delimiter) ]
 
+
+    # Ensure record is a record_dict object, otherwise nested keys won't work
     record = record_dict(record)
 
     # Each _key in transform represents a new dict key

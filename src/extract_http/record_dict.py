@@ -136,7 +136,7 @@ class record_dict(dict):
 
         In addition, iterate_lists allows the expansion of lists into records, i.e. List[Dict].
         If True, it will expect a list as value, and iterate through the items to put each one into one record under the specified subkey.
-        
+
         """
 
         # Create node if it doesn't exist
@@ -149,6 +149,10 @@ class record_dict(dict):
             iterate_lists:bool=True,
             **kwargs,
             ):
+            """
+            The node must NOT exist; its much safer to use .put() in every single case.
+            Hence this is an internal function of .put().
+            """
 
             if (len(remaining_keys)>0):
                 self[first_key] = type(self)()
@@ -171,8 +175,10 @@ class record_dict(dict):
             isinstance(value, str)):
             value = [value,]
 
-        # This has a slight problem of actually wanting to put([]) into the values;
-        # but if that is the case, iterate_lists simply doesn't make sense
+        """
+        This has a slight problem of actually wanting to put([]) into the values;
+        but if that is the case, iterate_lists simply doesn't make sense, so we just return None and finish the iteration.
+        """
         if (len(value) <= 0 and iterate_lists):
             return None
 
@@ -254,29 +260,29 @@ class record_dict(dict):
 
 
 # if __name__=="__main__":
-#     _dict = {
-#         "a":{
-#             "b":{
-#                 "c":{
-#                     "d":"Something",
-#                 }
+# _dict = {
+#     "a":{
+#         "b":{
+#             "c":{
+#                 "d":"Something",
 #             }
+#         }
+#     },
+#     "123":True,
+#     "456":[
+#         {
+#             "abc":[
+#                 "def",
+#                 "def2",
+#                 "def3",
+#             ]
 #         },
-#         "123":True,
-#         "456":[
-#             {
-#                 "abc":[
-#                     "def",
-#                     "def2",
-#                     "def3",
-#                 ]
-#             },
-#             {
-#                 "abc":"ghi",
-#             },
-#             "a string",
-#         ]
-#     }
+#         {
+#             "abc":"ghi",
+#         },
+#         "a string",
+#     ]
+# }
 
 #     _dict = record_dict(_dict)
 
