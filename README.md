@@ -7,7 +7,7 @@
 ## extract_http.extract.extract
 
 Extract information from a HTML or JSON API as according to a configuration dictionary.
-```
+```python
 def extract(
     config:dict,
     **kwargs,)
@@ -16,7 +16,7 @@ def extract(
 
 # Configuration Dictionary
 Example configuration:
-```
+```json
 {
    "type": "html",
    "url": "https://lightfinder.erco.com/specsheets/show/{art_no:s}/en/",
@@ -112,11 +112,11 @@ URL to request for data.
 The URL will be formatted by `kwargs` (`url.format(**kwargs)`), where `kwargs` are all the keyword parameters supplied to the extraction function.
 
 For example:
-```
+```yaml
 url: https://lightfinder.erco.com/specsheets/show/{art_no:s}/en/
 ```
 then calling the extraction via:
-```
+```python
 extract_http.extract.extract(config, art_no="A2000292")
 ```
 will result in `https://lightfinder.erco.com/specsheets/show/A2000292/en/` being requested.
@@ -128,13 +128,13 @@ Dictionary with any keys.
 
 Parameters to be supplied as part of the HTTP Query String.
 Supplying
-```
+```yaml
 url: https://lightfinder.erco.com/specsheets/show/{art_no:s}/en/
 params:
     api: v1.1
 ```
 is the equivalent of
-```
+```yaml
 url: https://lightfinder.erco.com/specsheets/show/{art_no:s}/en/?api=v1.1
 ```
 
@@ -194,7 +194,7 @@ Dictionary with keys:
 Extract a dictionary of values, of which the keys are defined by the nodes, as opposed to being pre-defined in the configuration.
 
 This is most useful for a table of data:
-```
+```html
 <table class="employee_table">
     <tr>
         <td>Name</td>
@@ -211,7 +211,7 @@ This is most useful for a table of data:
 </table>
 ```
 By using the following as `locate[]`:
-```
+```json
 {
     "search_root": [
         "table.employee_table>tr"
@@ -272,7 +272,7 @@ Defines where the information for `[parameter_name]` originates.
 This string will be formatted (i.e. `source.format(**record)`) against the current record data. This allows new keys to be formed by concatenating and simple transformations of scaped data.
 
 For example, if our record from `locate[]` currently contains:
-```
+```json
 {
     "Name":"John Doe",
     "Age":"35",
@@ -280,7 +280,7 @@ For example, if our record from `locate[]` currently contains:
 }
 ```
 Then having a `transform` of
-```
+```json
 "transform":{
     "padded_name":{
         "source":"[{Name:60s}]",
@@ -333,7 +333,7 @@ String, One of the following values:
 
 Transform the resultant text into the desired type.
 For example, if our record from `locate[]` currently contains:
-```
+```json
 {
     "Name":"John Doe",
     "Age":"35",
@@ -341,7 +341,7 @@ For example, if our record from `locate[]` currently contains:
 }
 ```
 Then having a `transform` of
-```
+```json
 "transform":{
     "Age":{
         "type":"int"
@@ -405,7 +405,7 @@ DICT_KEY[>>>SUBDICT1_KEY[>>>SUBDICT2_KEY[>>>SUBDICT3_KEY[...]]]]
 Key Strings allow transformations to be applied to nested dictionaries. This is most useful when `type` is `json` and the incoming data structure has multiple layers.
 
 For example, if our data currently contains:
-```
+```json
 [
     {
         "Name":"John Doe",
@@ -430,7 +430,7 @@ For example, if our data currently contains:
 ]
 ```
 Then having a `transform` of
-```
+```json
 "transform":{
     "Employment>>>Salary":{
         "type":"int",
